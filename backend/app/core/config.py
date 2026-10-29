@@ -1,0 +1,33 @@
+"""Configuración central de la aplicación.
+
+Lee las variables desde un archivo .env (si existe) o desde el entorno.
+Así los valores sensibles no van en el código.
+"""
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    PROJECT_NAME: str = "zcorp-stack API"
+    DATABASE_URL: str = "postgresql+psycopg://zcorp:zcorp@localhost:5434/zcorp"
+    REDIS_URL: str = "redis://localhost:6381/0"
+
+    # Sesión. Obligatorio: una frase larga y aleatoria. Genera una con:
+    #   python -c "import secrets; print(secrets.token_urlsafe(48))"
+    SECRET_KEY: str = ""
+    MINUTOS_TOKEN_ACCESO: int = 30
+    DIAS_TOKEN_REFRESCO: int = 30
+
+    # Ingreso: intentos fallidos permitidos por cuenta y por IP antes de esperar.
+    MAX_INTENTOS_LOGIN: int = 5
+    MINUTOS_BLOQUEO_LOGIN: int = 15
+
+    # Orígenes del frontend que pueden llamar a la API (separados por coma).
+    # La web pasa por el mismo dominio; esto es para herramientas externas.
+    CORS_ORIGINS: str = "http://localhost:3300"
+
+
+# Instancia única que importaremos en el resto del proyecto.
+settings = Settings()

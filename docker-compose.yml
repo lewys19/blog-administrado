@@ -1,0 +1,64 @@
+# zcorp-stack en tu equipo:
+#   1. cp .env.example .env   y completa SECRET_KEY y DB_PASSWORD
+#   2. docker compose up -d --build
+#   3. API y su documentación: http://localhost:8300/docs   ·   web: cd web && npm run dev → http://localhost:3300
+# Para programar el backend con .venv basta levantar la base y Redis: docker compose up -d db redis
+services:
+  db:
+    # postgres:16-alpine ya está en el equipo (Docker Hub falla seguido en esta red): sin descargas.
+    image: postgres:16-alpine
+    container_name: zcorp-db
+    environment:
+      POSTGRES_DB: zcorp
+      POSTGRES_USER: zcorp
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      - zcorp-db:/var/lib/postgresql/data
+    # Solo accesible desde este equipo (127.0.0.1), para el .venv y las pruebas.
+    ports:
+      - "127.0.0.1:${PUERTO_DB:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zcorp -d zcorp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: zcorp-redis
+    ports:
+      - "127.0.0.1:${PUERTO_REDIS:-6381}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    container_name: zcorp-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://zcorp:${DB_PASSWORD}@db:5432/zcorp
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?Falta SECRET_KEY en el archivo .env (mínimo 32 caracteres)}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3300}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
+    ports:
+      - "${PUERTO_API:-8300}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 120s
+    restart: unless-stopped
+
+volumes:
+  zcorp-db:

@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* zcorp-stack: verde bosque (estilo del panel de referencia) sobre fondos claros con un tinte verde. */
+:root {
+  --fondo: #eef3ef;
+  --superficie: #ffffff;
+  --texto: #13241b;
+  --texto-2: #52685b;
+  --borde: #dbe5dd;
+  --marca: #1f9d57;
+  --marca-fuerte: #157a42;
+  --marca-suave: #e3f3e9;
+  --sobre-marca: #ffffff;
+  --error: #c0392b;
+  --aviso: #b7791f;
+  /* Barra lateral del panel: oscura en los dos temas. */
+  --lateral: #0f2a1d;
+  --lateral-activo: #1d4a33;
+  --lateral-texto: #cfe3d6;
+  --lateral-tenue: #6f9580;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #0b1510;
+    --superficie: #13211a;
+    --texto: #e6efe9;
+    --texto-2: #9fb3a7;
+    --borde: #24372c;
+    --marca: #3ccf7f;
+    --marca-fuerte: #6fe0a2;
+    --marca-suave: #173426;
+    --sobre-marca: #062314;
+    --error: #ef6f61;
+    --aviso: #e0a548;
+    --lateral: #08130d;
+    --lateral-activo: #173a28;
+  }
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-borde: var(--borde);
+  --color-marca: var(--marca);
+  --color-marca-fuerte: var(--marca-fuerte);
+  --color-marca-suave: var(--marca-suave);
+  --color-sobre-marca: var(--sobre-marca);
+  --color-error: var(--error);
+  --color-aviso: var(--aviso);
+  --color-lateral: var(--lateral);
+  --color-lateral-activo: var(--lateral-activo);
+  --color-lateral-texto: var(--lateral-texto);
+  --color-lateral-tenue: var(--lateral-tenue);
+  /* Fuente del sistema: no se descarga nada (ni al compilar ni al abrir la página). */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Consolas, monospace;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* Todo lo que se puede pulsar muestra la manito. */
+button:not(:disabled),
+a,
+summary {
+  cursor: pointer;
+}
