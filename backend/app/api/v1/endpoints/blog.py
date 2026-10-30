@@ -16,7 +16,8 @@ from app.schemas.contenido import (
     MasLeido,
     PaginaArticulos,
 )
-from app.services import articulos, taxonomia
+from app.schemas.estadistica import Cuenta
+from app.services import articulos, estadisticas, taxonomia
 
 router = APIRouter(prefix="/blog", tags=["Blog"])
 AlmacenDep = Annotated[Almacen, Depends(obtener_almacen)]
@@ -51,6 +52,12 @@ def ver(slug: str, db: Db, almacen: AlmacenDep) -> ArticuloPublico:
 def mas_leidos(db: Db, almacen: AlmacenDep, limite: Annotated[int, Query(ge=1, le=10)] = 5) -> list[MasLeido]:
     """Para la barra lateral: los más vistos de los últimos 30 días."""
     return articulos.mas_leidos(db, almacen, limite)
+
+
+@router.get("/paises", response_model=list[Cuenta])
+def paises(db: Db) -> list[Cuenta]:
+    """Para la portada: los 5 países con más visitas en 30 días y el resto como «otros» (clave nula)."""
+    return estadisticas.paises_publicos(db)
 
 
 @router.get("/categorias", response_model=list[CategoriaOut])

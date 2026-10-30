@@ -22,6 +22,28 @@
   --lateral-tenue: #6f9580;
 }
 
+/* El blog público es siempre blanco y verde, aunque el sistema esté en modo oscuro.
+   (El modo oscuro de abajo queda solo para el panel.) */
+.sitio-claro {
+  color-scheme: light;
+  --fondo: #f4f8f5;
+  --pagina: #ffffff;
+  --superficie: #ffffff;
+  --texto: #13241b;
+  --texto-2: #52685b;
+  --borde: #dbe5dd;
+  --marca: #1f9d57;
+  --marca-fuerte: #157a42;
+  --marca-suave: #e3f3e9;
+  --sobre-marca: #ffffff;
+  --error: #c0392b;
+  --aviso: #b7791f;
+  --lateral: #0f2a1d;
+  --lateral-activo: #1d4a33;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --fondo: #0b1510;

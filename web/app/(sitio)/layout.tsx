@@ -6,7 +6,7 @@ import { Encabezado, EncabezadoCargando, Pie } from "@/components/Sitio";
 // El blog público: fondo blanco con detalles verdes. El panel (/admin) no lleva este encabezado.
 export default function LayoutSitio({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex flex-1 flex-col bg-pagina">
+    <div className="sitio-claro flex flex-1 flex-col">
       <Suspense fallback={<EncabezadoCargando />}>
         <Encabezado />
       </Suspense>

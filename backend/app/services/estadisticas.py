@@ -325,3 +325,13 @@ def resumen(db: Session) -> ResumenVisitas:
         segundos_promedio_mes=round(segundos),
         por_mes=_serie(db, _inicio(_meses_atras(hoy, 11)), hasta, True, _etiquetas_meses(hoy, 12)),
     )
+
+
+def paises_publicos(db: Session, limite: int = 5) -> list[Cuenta]:
+    """Para la portada: de dónde vienen los lectores en los últimos 30 días (solo conteos, nada personal)."""
+    hasta = ahora()
+    desde = hasta - timedelta(days=30)
+    filas = _conteo(db, Visita.pais, desde, hasta, 50)
+    conocidos = [c for c in filas if c.clave]
+    otros = sum(c.visitas for c in filas) - sum(c.visitas for c in conocidos[:limite])
+    return conocidos[:limite] + ([Cuenta(clave=None, visitas=otros)] if otros else [])

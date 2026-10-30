@@ -53,21 +53,31 @@ export function Meta({ a }: { a: ArticuloTarjeta }) {
   );
 }
 
-export function Tarjeta({ a }: { a: ArticuloTarjeta }) {
+/** Tarjeta de artículo. `compacta`: para filas de 4 (sin resumen ni autor, título más chico). */
+export function Tarjeta({ a, compacta = false }: { a: ArticuloTarjeta; compacta?: boolean }) {
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-borde bg-pagina shadow-sm transition hover:-translate-y-0.5 hover:border-marca hover:shadow-md">
       <Portada a={a} clase="aspect-[1200/630]" />
-      <div className="flex flex-1 flex-col gap-2.5 p-5">
+      <div className={`flex flex-1 flex-col ${compacta ? "gap-2 p-3.5" : "gap-2.5 p-5"}`}>
         <EtiquetaCategoria a={a} />
-        <h3 className="text-lg leading-snug font-bold text-balance">
+        <h3 className={`leading-snug font-bold text-balance ${compacta ? "line-clamp-3 text-sm" : "text-lg"}`}>
           {/* Toda la tarjeta es el enlace al artículo. */}
           <Link href={`/blog/${a.slug}`} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
             {a.titulo}
           </Link>
         </h3>
-        {a.resumen && <p className="line-clamp-3 text-sm text-texto-2">{a.resumen}</p>}
-        <div className="mt-auto pt-2">
-          <Meta a={a} />
+        {!compacta && a.resumen && <p className="line-clamp-2 text-sm text-texto-2">{a.resumen}</p>}
+        <div className="mt-auto pt-1">
+          {compacta ? (
+            <p className="flex items-center gap-3 text-xs text-texto-2">
+              <time dateTime={a.publicado_en}>{fechaLarga(a.publicado_en)}</time>
+              <span className="flex items-center gap-1">
+                <Icono d={ICONOS.reloj} className="h-3.5 w-3.5" /> {a.minutos_lectura} min
+              </span>
+            </p>
+          ) : (
+            <Meta a={a} />
+          )}
         </div>
       </div>
     </article>

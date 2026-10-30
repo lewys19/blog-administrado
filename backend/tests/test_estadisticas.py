@@ -131,3 +131,11 @@ def test_vistas_y_mas_leidos(client: TestClient, registrar: Callable[..., dict],
     # El más visto primero; el resto se completa con los recientes (sin vistas).
     leidos = client.get(f"{API}/blog/mas-leidos?limite=5").json()
     assert [(m["slug"], m["vistas"]) for m in leidos] == [(dos["slug"], 2), (uno["slug"], 0)]
+
+
+def test_paises_publicos(client: TestClient) -> None:
+    for pais in ["PE", "PE", "MX", "ES"]:
+        visitar(client, "/", **{settings.CABECERA_PAIS: pais})
+    datos = client.get("/api/v1/blog/paises").json()
+    assert datos[0] == {"clave": "PE", "visitas": 2}
+    assert {d["clave"] for d in datos} >= {"MX", "ES"}
