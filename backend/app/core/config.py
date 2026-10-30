@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     # La web pasa por el mismo dominio; esto es para herramientas externas.
     CORS_ORIGINS: str = "http://localhost:3300"
 
+    # Imágenes: "local" (disco del servidor, servidas en /media) o, más adelante, "r2" (Cloudflare R2).
+    ALMACEN_FOTOS: str = "local"
+    CARPETA_MEDIA: str = "./media"
+    MAX_MB_FOTO: int = 8
+
+    # Lectura: palabras por minuto para estimar el tiempo de lectura de un artículo técnico.
+    PALABRAS_POR_MINUTO: int = 200
+
 
 # Instancia única que importaremos en el resto del proyecto.
 settings = Settings()

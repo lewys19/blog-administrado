@@ -70,3 +70,105 @@ a,
 summary {
   cursor: pointer;
 }
+
+/* ---------- Lectura de artículos (.contenido) ---------- */
+.contenido {
+  font-size: 1.075rem;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+.contenido > * + * {
+  margin-top: 1.15em;
+}
+.contenido h2 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 2.2em;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 5rem;
+}
+.contenido h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.8em;
+  scroll-margin-top: 5rem;
+}
+.contenido a {
+  color: var(--marca-fuerte);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.contenido ul,
+.contenido ol {
+  padding-left: 1.4em;
+}
+.contenido ul {
+  list-style: disc;
+}
+.contenido ol {
+  list-style: decimal;
+}
+.contenido li + li {
+  margin-top: 0.35em;
+}
+.contenido blockquote {
+  border-left: 3px solid var(--marca);
+  padding: 0.2em 0 0.2em 1em;
+  color: var(--texto-2);
+}
+.contenido img {
+  border-radius: 0.75rem;
+  border: 1px solid var(--borde);
+}
+.contenido hr {
+  border-color: var(--borde);
+  margin-block: 2.5em;
+}
+.contenido table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.contenido th,
+.contenido td {
+  border: 1px solid var(--borde);
+  padding: 0.45em 0.8em;
+}
+.contenido th {
+  background: var(--fondo);
+}
+/* Código dentro de un párrafo: `así`. */
+.contenido :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--marca-suave);
+  color: var(--marca-fuerte);
+  padding: 0.12em 0.4em;
+  border-radius: 0.35em;
+}
+/* Bloques de código: siempre oscuros (se leen mejor y es lo que esperan los programadores). */
+.contenido .codigo {
+  background: #0f1d16;
+  border-radius: 0.75rem;
+  border: 1px solid #1f3a2b;
+}
+.contenido .codigo pre {
+  overflow-x: auto;
+  padding: 1em 1.2em;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #dbe7df;
+}
+/* Colores de Pygments (clases que pone el servidor). */
+.codigo .k, .codigo .kn, .codigo .kd, .codigo .kr, .codigo .kc, .codigo .ow { color: #7ee2a8; }
+.codigo .s, .codigo .s1, .codigo .s2, .codigo .sd, .codigo .sb, .codigo .si, .codigo .sa { color: #f2c57c; }
+.codigo .c, .codigo .c1, .codigo .cm, .codigo .ch, .codigo .cs { color: #6f8a7c; font-style: italic; }
+.codigo .nf, .codigo .fm, .codigo .nc { color: #8cc8ff; }
+.codigo .mi, .codigo .mf, .codigo .m, .codigo .il { color: #ff9e7a; }
+.codigo .nb, .codigo .bp, .codigo .nd { color: #c5a3ff; }
+.codigo .o, .codigo .p { color: #b7c9bf; }
+.codigo .na, .codigo .nt { color: #8cc8ff; }
+.codigo .err { color: #ff8a80; }

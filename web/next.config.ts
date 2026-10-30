@@ -7,12 +7,17 @@ const API_INTERNA = process.env.API_INTERNA ?? "http://localhost:8300";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  partialPrefetching: true,
   // Genera un servidor mínimo (.next/standalone) para una imagen Docker liviana.
   output: "standalone",
   // Solo en `npm run dev`: permite abrirla desde otra PC de la red local (p. ej. Windows → VM Kali).
   allowedDevOrigins: ["192.168.*.*"],
   async rewrites() {
-    return [{ source: "/api/v1/:ruta*", destination: `${API_INTERNA}/api/v1/:ruta*` }];
+    return [
+      { source: "/api/v1/:ruta*", destination: `${API_INTERNA}/api/v1/:ruta*` },
+      // Portadas de los artículos (almacén local de la API).
+      { source: "/media/:ruta*", destination: `${API_INTERNA}/media/:ruta*` },
+    ];
   },
   turbopack: {
     rules: {

@@ -19,6 +19,8 @@ export interface Resumen {
   usuarios_nuevos_7d: number;
   usuarios_activos_hoy: number;
   equipo: number;
+  articulos_publicados: number;
+  articulos_en_revision: number;
 }
 
 export interface UsuarioFila {
@@ -52,4 +54,99 @@ export interface Rol {
   usuarios: number;
   /** El Administrador no se edita ni se borra. */
   fijo: boolean;
+}
+
+// ---------- Contenido ----------
+
+export type EstadoArticulo = "borrador" | "revision" | "programado" | "publicado";
+
+export interface Corto {
+  nombre: string;
+  slug: string;
+}
+
+export interface Categoria {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion: string | null;
+  padre_id: number | null;
+  orden: number;
+  /** Publicados. */
+  articulos: number;
+}
+
+export interface Etiqueta {
+  id: number;
+  nombre: string;
+  slug: string;
+  articulos: number;
+}
+
+export interface ArticuloFila {
+  id: number;
+  titulo: string;
+  slug: string;
+  estado: EstadoArticulo;
+  destacado: boolean;
+  categoria: Corto | null;
+  autor: { id: number; nombre: string; username: string };
+  publicado_en: string | null;
+  actualizado_en: string;
+  seo_completo: boolean;
+}
+
+export interface PaginaArticulosPanel {
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  articulos: ArticuloFila[];
+}
+
+export interface ArticuloEditor extends ArticuloFila {
+  resumen: string | null;
+  contenido: string;
+  imagen: string | null;
+  categoria_id: number | null;
+  etiquetas: string[];
+  minutos_lectura: number;
+  meta_titulo: string | null;
+  meta_descripcion: string | null;
+  palabras_clave: string | null;
+}
+
+export interface ArticuloTarjeta {
+  titulo: string;
+  slug: string;
+  resumen: string | null;
+  imagen: string | null;
+  categoria: Corto | null;
+  autor: { nombre: string; username: string };
+  publicado_en: string;
+  minutos_lectura: number;
+  destacado: boolean;
+}
+
+export interface PaginaArticulos {
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  articulos: ArticuloTarjeta[];
+}
+
+export interface ArticuloPublico extends ArticuloTarjeta {
+  contenido_html: string;
+  etiquetas: Corto[];
+  actualizado_en: string;
+  meta_titulo: string;
+  meta_descripcion: string;
+  palabras_clave: string | null;
+  relacionados: ArticuloTarjeta[];
+}
+
+export interface Autor {
+  nombre: string;
+  username: string;
+  biografia: string | null;
+  articulos: ArticuloTarjeta[];
 }

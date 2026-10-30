@@ -37,19 +37,31 @@ export function Dashboard() {
   const [r, setR] = useState<Resumen | null>(null);
 
   useEffect(() => {
-    pedir<Resumen>("/panel/resumen", { conSesion: true }).then(setR).catch(() => {});
+    pedir<Resumen>("/panel/resumen", { conSesion: true })
+      .then(setR)
+      .catch(() => {});
   }, []);
 
   const cifras: Cifra[] = [
     { titulo: "Visitas hoy", sprint: 2 },
     { titulo: "Visitas del mes", sprint: 2 },
     { titulo: "Ingresos de AdSense", sprint: 6 },
-    { titulo: "Artículos publicados", sprint: 1 },
-    { titulo: "Usuarios registrados", valor: r?.usuarios, detalle: r ? `${r.usuarios_nuevos_7d} nuevos en 7 días` : "" },
+    {
+      titulo: "Artículos publicados",
+      valor: r?.articulos_publicados,
+      detalle: r ? `${r.articulos_en_revision} en revisión` : "",
+    },
+    {
+      titulo: "Usuarios registrados",
+      valor: r?.usuarios,
+      detalle: r ? `${r.usuarios_nuevos_7d} nuevos en 7 días` : "",
+    },
     { titulo: "Comentarios pendientes", sprint: 3 },
   ];
   // Solo lo que este rol podrá usar (igual que la barra lateral).
-  const proximas = SECCIONES.filter((s) => s.sprint && puede(yo, s.permiso)).sort((a, b) => (a.sprint ?? 0) - (b.sprint ?? 0));
+  const proximas = SECCIONES.filter((s) => s.sprint && puede(yo, s.permiso)).sort(
+    (a, b) => (a.sprint ?? 0) - (b.sprint ?? 0),
+  );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -59,9 +71,12 @@ export function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight">Hola, {yo.nombre.split(" ")[0]}</h1>
           <p className="text-sm text-texto-2">Resumen de zcorp-stack.</p>
         </div>
-        <span className="rounded-full bg-lateral px-4 py-2 text-sm font-semibold text-white opacity-60" title="Llega en el Sprint 1">
+        <Link
+          href="/admin/articulos/nuevo"
+          className="rounded-full bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo"
+        >
           + Nuevo artículo
-        </span>
+        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -73,7 +88,9 @@ export function Dashboard() {
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-borde bg-superficie p-5 lg:col-span-2">
           <h2 className="font-bold">Lo que viene</h2>
-          <p className="mb-3 text-sm text-texto-2">Secciones del panel por sprint. Cada una se activa cuando su sprint funciona.</p>
+          <p className="mb-3 text-sm text-texto-2">
+            Secciones del panel por sprint. Cada una se activa cuando su sprint funciona.
+          </p>
           <ul className="divide-y divide-borde text-sm">
             {proximas.map((s) => (
               <li key={s.ruta} className="flex items-center gap-3 py-2">

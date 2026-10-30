@@ -17,3 +17,13 @@ export function hace(iso: string, ahora: Date = new Date()): string {
   if (s < 7 * 86400) return `hace ${Math.floor(s / 86400)} días`;
   return fecha(iso);
 }
+
+/** "29 de octubre de 2026" (la fecha de un artículo). */
+export function fechaLarga(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-PE", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Lima",
+  });
+}

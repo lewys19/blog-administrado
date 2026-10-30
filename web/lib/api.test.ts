@@ -95,11 +95,15 @@ describe("pedir", () => {
 describe("conReintentos", () => {
   it("reintenta un error del servidor y devuelve el segundo intento", async () => {
     let llamadas = 0;
-    const r = await conReintentos(async () => {
-      llamadas++;
-      if (llamadas === 1) throw new ErrorApi(500, "caído");
-      return "ok";
-    }, 2, 1);
+    const r = await conReintentos(
+      async () => {
+        llamadas++;
+        if (llamadas === 1) throw new ErrorApi(500, "caído");
+        return "ok";
+      },
+      2,
+      1,
+    );
     expect(r).toBe("ok");
     expect(llamadas).toBe(2);
   });
@@ -107,10 +111,14 @@ describe("conReintentos", () => {
   it("no reintenta un error del cliente (4xx)", async () => {
     let llamadas = 0;
     await expect(
-      conReintentos(async () => {
-        llamadas++;
-        throw new ErrorApi(422, "datos inválidos");
-      }, 3, 1),
+      conReintentos(
+        async () => {
+          llamadas++;
+          throw new ErrorApi(422, "datos inválidos");
+        },
+        3,
+        1,
+      ),
     ).rejects.toThrow("datos inválidos");
     expect(llamadas).toBe(1);
   });

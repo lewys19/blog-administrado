@@ -1,0 +1,122 @@
+import io
+from collections.abc import Callable, Generator
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+from PIL import Image
+from sqlalchemy.orm import Session
+
+from app.almacen import AlmacenLocal, obtener_almacen
+from app.main import app
+from tests.conftest import EDITOR, INVITADO, REDACTOR, dar_rol
+
+PANEL = "/api/v1/panel"
+BLOG = "/api/v1/blog"
+PYTHON = 2  # categoría sembrada por la migración 0002
+
+
+@pytest.fixture(autouse=True)
+def carpeta_imagenes(tmp_path: Path) -> Generator[Path, None, None]:
+    app.dependency_overrides[obtener_almacen] = lambda: AlmacenLocal(str(tmp_path))
+    yield tmp_path
+    app.dependency_overrides.pop(obtener_almacen, None)
+
+
+def articulo(**cambios: object) -> dict:
+    datos: dict = {
+        "titulo": "Cómo usar FastAPI con PostgreSQL",
+        "resumen": "Una API real paso a paso.",
+        "contenido": "## Instalación\n\nPrimero instala **FastAPI**.\n\n```python\nprint('hola')\n```",
+        "categoria_id": PYTHON,
+        "etiquetas": ["FastAPI", "PostgreSQL"],
+    }
+    datos.update(cambios)
+    return datos
+
+
+def test_redactor_escribe_y_editor_publica(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h_red = dar_rol(db, registrar("red@example.com", "Rosa Redactora"), REDACTOR)
+    h_ed = dar_rol(db, registrar("ed@example.com", "Eduardo"), EDITOR)
+
+    r = client.post(f"{PANEL}/articulos", json=articulo(), headers=h_red)
+    assert r.status_code == 201, r.text
+    a = r.json()
+    assert (a["slug"], a["estado"], a["etiquetas"]) == ("como-usar-fastapi-con-postgresql", "borrador", ["FastAPI", "PostgreSQL"])
+    # El Redactor no publica: lo envía a revisión.
+    assert client.put(f"{PANEL}/articulos/{a['id']}", json=articulo(estado="publicado"), headers=h_red).status_code == 403
+    assert client.put(f"{PANEL}/articulos/{a['id']}", json=articulo(estado="revision"), headers=h_red).json()["estado"] == "revision"
+    assert client.get(f"{BLOG}/articulos/{a['slug']}").status_code == 404  # aún no es público
+
+    r = client.put(f"{PANEL}/articulos/{a['id']}", json=articulo(estado="publicado", destacado=True), headers=h_ed)
+    assert r.status_code == 200 and r.json()["publicado_en"]
+    publico = client.get(f"{BLOG}/articulos/{a['slug']}").json()
+    assert publico["autor"]["username"] == "rosa-redactora" and publico["destacado"] is True
+    assert '<h2 id="instalacion">' in publico["contenido_html"] and 'class="codigo"' in publico["contenido_html"]
+    assert publico["meta_descripcion"] == "Una API real paso a paso."  # sin meta propia: el resumen
+    # Ya publicado, el Redactor ya no lo cambia.
+    assert client.put(f"{PANEL}/articulos/{a['id']}", json=articulo(titulo="Otro"), headers=h_red).status_code == 403
+
+
+def test_el_html_se_limpia(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    malo = "Hola <script>alert(1)</script> <img src=x onerror=alert(1)> [clic](javascript:alert(1))"
+    a = client.post(f"{PANEL}/articulos", json=articulo(contenido=malo, estado="publicado"), headers=h).json()
+    html = client.get(f"{BLOG}/articulos/{a['slug']}").json()["contenido_html"]
+    assert "<script" not in html and "onerror" not in html and "javascript:" not in html
+
+
+def test_programado_sale_en_su_fecha(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    futuro = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+    assert client.post(f"{PANEL}/articulos", json=articulo(estado="programado"), headers=h).status_code == 400
+    a = client.post(f"{PANEL}/articulos", json=articulo(estado="programado", publicado_en=futuro), headers=h).json()
+    assert client.get(f"{BLOG}/articulos/{a['slug']}").status_code == 404
+    from app.models import Articulo
+
+    db.get(Articulo, a["id"]).publicado_en = datetime.now(UTC) - timedelta(minutes=1)  # type: ignore[union-attr]
+    db.commit()
+    assert client.get(f"{BLOG}/articulos/{a['slug']}").status_code == 200
+
+
+def test_slug_unico_y_busqueda_en_espanol(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    uno = client.post(f"{PANEL}/articulos", json=articulo(estado="publicado"), headers=h).json()
+    dos = client.post(f"{PANEL}/articulos", json=articulo(estado="publicado", contenido="Aprende a programar pruebas."), headers=h).json()
+    assert dos["slug"] == "como-usar-fastapi-con-postgresql-2"
+    # «programación» encuentra «programar» (raíz en español).
+    r = client.get(f"{BLOG}/articulos", params={"q": "programación"}).json()
+    assert [x["slug"] for x in r["articulos"]] == [dos["slug"]]
+    assert client.get(f"{BLOG}/articulos", params={"etiqueta": "fastapi"}).json()["total"] == 2
+    assert client.get(f"{BLOG}/articulos", params={"categoria": "python"}).json()["total"] == 2
+    rel = client.get(f"{BLOG}/articulos/{uno['slug']}").json()["relacionados"]
+    assert [x["slug"] for x in rel] == [dos["slug"]]
+
+
+def test_portada_se_recorta_para_redes(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    a = client.post(f"{PANEL}/articulos", json=articulo(), headers=h).json()
+    imagen = io.BytesIO()
+    Image.new("RGB", (2000, 2000), "teal").save(imagen, "PNG")
+    r = client.put(f"{PANEL}/articulos/{a['id']}/imagen", files={"foto": ("p.png", imagen.getvalue(), "image/png")}, headers=h)
+    assert r.status_code == 200 and r.json()["imagen"].startswith("/media/articulos/")
+
+
+def test_invitado_y_lector(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    lector = registrar("lector@example.com", "Lector")
+    assert client.post(f"{PANEL}/articulos", json=articulo(), headers={"Authorization": f"Bearer {lector['token_acceso']}"}).status_code == 403
+    h_inv = dar_rol(db, registrar("inv@example.com", "Invitada"), INVITADO)
+    h_ed = dar_rol(db, registrar("ed@example.com", "Ed"), EDITOR)
+    propio = client.post(f"{PANEL}/articulos", json=articulo(), headers=h_inv).json()
+    ajeno = client.post(f"{PANEL}/articulos", json=articulo(titulo="Del editor"), headers=h_ed).json()
+    lista = client.get(f"{PANEL}/articulos", headers=h_inv).json()
+    assert [x["id"] for x in lista["articulos"]] == [propio["id"]]  # solo ve los suyos
+    assert client.get(f"{PANEL}/articulos/{ajeno['id']}", headers=h_inv).status_code == 403
+    assert client.get(f"{PANEL}/articulos", headers=h_ed).json()["total"] == 2
+
+
+def test_vista_previa(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), REDACTOR)
+    r = client.post(f"{PANEL}/articulos/vista-previa", json={"contenido": "# Hola\n\n" + "palabra " * 600}, headers=h).json()
+    assert r["html"].startswith('<h2 id="hola">') and r["minutos_lectura"] == 3

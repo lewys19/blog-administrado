@@ -44,7 +44,9 @@ export function Usuarios() {
   useEffect(() => {
     if (!puede(yo, "usuarios.ver")) return;
     cargar();
-    pedir<Rol[]>("/panel/roles", { conSesion: true }).then(setRoles).catch(() => {});
+    pedir<Rol[]>("/panel/roles", { conSesion: true })
+      .then(setRoles)
+      .catch(() => {});
   }, [yo, cargar]);
 
   if (!puede(yo, "usuarios.ver")) return <SinPermiso />;
@@ -71,7 +73,9 @@ export function Usuarios() {
           conSesion: true,
           cuerpo: { rol_id: valor ? Number(valor) : null },
         }),
-      valor ? `@${u.username} ahora es ${roles.find((r) => r.id === Number(valor))?.nombre}.` : `@${u.username} ya no entra al panel.`,
+      valor
+        ? `@${u.username} ahora es ${roles.find((r) => r.id === Number(valor))?.nombre}.`
+        : `@${u.username} ya no entra al panel.`,
     );
   const alternarBloqueo = (u: UsuarioFila) =>
     hacer(
@@ -99,11 +103,19 @@ export function Usuarios() {
       <div className="mb-3 space-y-2">
         <Aviso ok={ok} error={error} />
         {porEliminar && (
-          <div role="alertdialog" className="flex flex-wrap items-center gap-3 rounded-lg border border-error/40 bg-error/5 px-4 py-3 text-sm">
+          <div
+            role="alertdialog"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-error/40 bg-error/5 px-4 py-3 text-sm"
+          >
             <span className="flex-1">
-              ¿Eliminar la cuenta de <strong>@{porEliminar.username}</strong>? Sus datos se borran y no se puede deshacer.
+              ¿Eliminar la cuenta de <strong>@{porEliminar.username}</strong>? Sus datos se borran y no se puede
+              deshacer.
             </span>
-            <button type="button" onClick={() => setPorEliminar(null)} className="rounded-md border border-borde px-3 py-1.5">
+            <button
+              type="button"
+              onClick={() => setPorEliminar(null)}
+              className="rounded-md border border-borde px-3 py-1.5"
+            >
               Cancelar
             </button>
             <button
@@ -111,7 +123,10 @@ export function Usuarios() {
               onClick={() => {
                 const u = porEliminar;
                 setPorEliminar(null);
-                hacer(() => pedir(`/panel/usuarios/${u.id}`, { metodo: "DELETE", conSesion: true }), `Se eliminó la cuenta de @${u.username}.`);
+                hacer(
+                  () => pedir(`/panel/usuarios/${u.id}`, { metodo: "DELETE", conSesion: true }),
+                  `Se eliminó la cuenta de @${u.username}.`,
+                );
               }}
               className="rounded-md bg-error px-3 py-1.5 font-semibold text-white"
             >
@@ -182,13 +197,19 @@ export function Usuarios() {
                       </td>
                       <td className={TD}>
                         {u.bloqueado ? (
-                          <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-semibold text-error">Bloqueado</span>
+                          <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-semibold text-error">
+                            Bloqueado
+                          </span>
                         ) : (
-                          <span className="rounded-full bg-marca-suave px-2 py-0.5 text-xs font-semibold text-marca-fuerte">Activo</span>
+                          <span className="rounded-full bg-marca-suave px-2 py-0.5 text-xs font-semibold text-marca-fuerte">
+                            Activo
+                          </span>
                         )}
                       </td>
                       <td className={`${TD} tabular-nums`}>{fecha(u.creado_en)}</td>
-                      <td className={`${TD} text-texto-2`}>{u.ultimo_ingreso_en ? hace(u.ultimo_ingreso_en) : "Nunca"}</td>
+                      <td className={`${TD} text-texto-2`}>
+                        {u.ultimo_ingreso_en ? hace(u.ultimo_ingreso_en) : "Nunca"}
+                      </td>
                       {editar && (
                         <td className={TD}>
                           {!mismo && (
@@ -201,7 +222,11 @@ export function Usuarios() {
                                 {u.bloqueado ? "Desbloquear" : "Bloquear"}
                               </button>
                               <GrupoAcciones>
-                                <BotonAccion tipo="eliminar" titulo="Eliminar cuenta" onClick={() => setPorEliminar(u)} />
+                                <BotonAccion
+                                  tipo="eliminar"
+                                  titulo="Eliminar cuenta"
+                                  onClick={() => setPorEliminar(u)}
+                                />
                               </GrupoAcciones>
                             </div>
                           )}
@@ -214,7 +239,9 @@ export function Usuarios() {
             </tbody>
           </table>
         </div>
-        {datos && <Paginacion pagina={datos.pagina} porPagina={datos.por_pagina} total={datos.total} alCambiar={setPagina} />}
+        {datos && (
+          <Paginacion pagina={datos.pagina} porPagina={datos.por_pagina} total={datos.total} alCambiar={setPagina} />
+        )}
       </Caja>
     </div>
   );

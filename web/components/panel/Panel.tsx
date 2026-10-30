@@ -120,7 +120,10 @@ function Opcion({ s, activa, alElegir }: { s: Seccion; activa: boolean; alElegir
       <Icono d={s.icono} />
       <span className="flex-1">{s.texto}</span>
       {s.sprint && (
-        <span className="rounded-full bg-white/10 px-1.5 font-mono text-[10px] text-lateral-tenue" title={`Llega en el Sprint ${s.sprint}`}>
+        <span
+          className="rounded-full bg-white/10 px-1.5 font-mono text-[10px] text-lateral-tenue"
+          title={`Llega en el Sprint ${s.sprint}`}
+        >
           S{s.sprint}
         </span>
       )}
@@ -155,7 +158,9 @@ function BarraLateral({ yo, abierta, alCerrar }: { yo: Yo; abierta: boolean; alC
             if (!items.length) return null;
             return (
               <div key={g ?? "inicio"} className="space-y-0.5">
-                {g && <p className="px-3 pb-1 font-mono text-[10px] tracking-widest text-lateral-tenue uppercase">{g}</p>}
+                {g && (
+                  <p className="px-3 pb-1 font-mono text-[10px] tracking-widest text-lateral-tenue uppercase">{g}</p>
+                )}
                 {items.map((s) => (
                   <Opcion key={s.ruta} s={s} activa={activa(s)} alElegir={cerrarEnCelular} />
                 ))}
@@ -233,7 +238,11 @@ export function Panel({ children }: { children: ReactNode }) {
             <p>
               La cuenta <strong>{actual.email}</strong> no tiene acceso al panel.
             </p>
-            <button type="button" onClick={salir} className="w-full rounded-lg bg-lateral px-4 py-2.5 font-semibold text-white">
+            <button
+              type="button"
+              onClick={salir}
+              className="w-full rounded-lg bg-lateral px-4 py-2.5 font-semibold text-white"
+            >
               Ingresar con otra cuenta
             </button>
           </div>

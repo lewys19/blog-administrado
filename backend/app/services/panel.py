@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.errores import ErrorNegocio
 from app.core.fechas import ahora
 from app.core.permisos import ADMINISTRADOR, PERMISOS
-from app.models import Rol, Usuario
+from app.models import Articulo, EstadoArticulo, Rol, Usuario
 from app.schemas.panel import (
     PaginaUsuarios,
     PermisoOut,
@@ -21,7 +21,7 @@ from app.schemas.panel import (
     UsuarioCambiosAdmin,
     UsuarioFilaOut,
 )
-from app.services import auth
+from app.services import articulos, auth
 
 
 def resumen(db: Session) -> ResumenOut:
@@ -32,6 +32,11 @@ def resumen(db: Session) -> ResumenOut:
         usuarios_nuevos_7d=db.scalar(vivos.where(Usuario.creado_en >= ahora() - timedelta(days=7))) or 0,
         usuarios_activos_hoy=db.scalar(vivos.where(Usuario.ultimo_ingreso_en >= inicio_de_hoy)) or 0,
         equipo=db.scalar(vivos.where(Usuario.rol_id.is_not(None))) or 0,
+        articulos_publicados=articulos.contar_publicados(db),
+        articulos_en_revision=db.scalar(
+            select(func.count()).select_from(Articulo).where(Articulo.estado == EstadoArticulo.REVISION)
+        )
+        or 0,
     )
 
 

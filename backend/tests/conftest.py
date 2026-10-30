@@ -31,7 +31,7 @@ Cabeceras = dict[str, str]
 ADMINISTRADOR, EDITOR, REDACTOR, INVITADO = 1, 2, 3, 4
 
 URL_PRUEBAS = make_url(os.environ.get("DATABASE_URL_PRUEBAS") or settings.DATABASE_URL).set(database="zcorp_pruebas")
-TABLAS_DE_DATOS = "tokens_refresco, usuarios"
+TABLAS_DE_DATOS = "articulo_etiqueta, articulos, etiquetas, tokens_refresco, usuarios"
 
 
 def _crear_base_si_falta() -> None:
@@ -59,6 +59,7 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
         conexion.execute(text(f"TRUNCATE {TABLAS_DE_DATOS} RESTART IDENTITY CASCADE"))
         # Los 4 roles de la migración se conservan; los creados en una prueba, no.
         conexion.execute(text("DELETE FROM roles WHERE id > 4"))
+        conexion.execute(text("DELETE FROM categorias WHERE id > 6"))  # las 6 de la migración 0002 se quedan
     # Los intentos de ingreso viven en Redis: cada prueba empieza sin bloqueos.
     cliente = redis.Redis.from_url(settings.REDIS_URL)
     for clave in cliente.scan_iter("login:*"):

@@ -14,7 +14,9 @@ export function Proximamente() {
     <div className="mx-auto max-w-3xl">
       <Migas items={[{ texto: s.texto }]} />
       <div className="rounded-2xl border border-dashed border-borde bg-superficie p-8 text-center">
-        <p className="font-mono text-xs font-semibold tracking-widest text-aviso uppercase">Llega en el Sprint {s.sprint}</p>
+        <p className="font-mono text-xs font-semibold tracking-widest text-aviso uppercase">
+          Llega en el Sprint {s.sprint}
+        </p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight">{s.texto}</h1>
         <p className="mx-auto mt-2 max-w-md text-texto-2">{s.descripcion}</p>
       </div>

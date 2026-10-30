@@ -39,7 +39,9 @@ export function Autores() {
   useEffect(() => {
     if (!puede(yo, "roles.gestionar")) return;
     cargar();
-    pedir<Permiso[]>("/panel/permisos", { conSesion: true }).then(setPermisos).catch(() => {});
+    pedir<Permiso[]>("/panel/permisos", { conSesion: true })
+      .then(setPermisos)
+      .catch(() => {});
   }, [yo, cargar]);
 
   if (!puede(yo, "roles.gestionar")) return <SinPermiso />;
@@ -78,7 +80,13 @@ export function Autores() {
   }
 
   const alternar = (clave: string) =>
-    setBorrador((b) => b && { ...b, permisos: b.permisos.includes(clave) ? b.permisos.filter((p) => p !== clave) : [...b.permisos, clave] });
+    setBorrador(
+      (b) =>
+        b && {
+          ...b,
+          permisos: b.permisos.includes(clave) ? b.permisos.filter((p) => p !== clave) : [...b.permisos, clave],
+        },
+    );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -97,19 +105,30 @@ export function Autores() {
         </button>
       </div>
       <p className="mb-4 text-sm text-texto-2">
-        Para dar un rol a alguien, entra a <strong>Usuarios</strong> y elígelo en su fila. El Administrador tiene todos los permisos
-        y no se puede cambiar.
+        Para dar un rol a alguien, entra a <strong>Usuarios</strong> y elígelo en su fila. El Administrador tiene todos
+        los permisos y no se puede cambiar.
       </p>
 
       <div className="mb-3 space-y-2">
         <Aviso ok={ok} error={error} />
         {porEliminar && (
-          <div role="alertdialog" className="flex flex-wrap items-center gap-3 rounded-lg border border-error/40 bg-error/5 px-4 py-3 text-sm">
+          <div
+            role="alertdialog"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-error/40 bg-error/5 px-4 py-3 text-sm"
+          >
             <span className="flex-1">¿Eliminar el rol «{porEliminar.nombre}»?</span>
-            <button type="button" onClick={() => setPorEliminar(null)} className="rounded-md border border-borde px-3 py-1.5">
+            <button
+              type="button"
+              onClick={() => setPorEliminar(null)}
+              className="rounded-md border border-borde px-3 py-1.5"
+            >
               Cancelar
             </button>
-            <button type="button" onClick={() => eliminar(porEliminar)} className="rounded-md bg-error px-3 py-1.5 font-semibold text-white">
+            <button
+              type="button"
+              onClick={() => eliminar(porEliminar)}
+              className="rounded-md bg-error px-3 py-1.5 font-semibold text-white"
+            >
               Eliminar
             </button>
           </div>
@@ -149,7 +168,10 @@ export function Autores() {
               <legend className="mb-2 text-sm font-medium text-texto-2">Permisos</legend>
               <div className="grid gap-2 sm:grid-cols-2">
                 {permisos.map((p) => (
-                  <label key={p.clave} className="flex items-center gap-2 rounded-md border border-borde px-3 py-2 text-sm hover:bg-fondo">
+                  <label
+                    key={p.clave}
+                    className="flex items-center gap-2 rounded-md border border-borde px-3 py-2 text-sm hover:bg-fondo"
+                  >
                     <input
                       id={`permiso-${p.clave}`}
                       type="checkbox"
@@ -163,10 +185,17 @@ export function Autores() {
               </div>
             </fieldset>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setBorrador(null)} className="rounded-md border border-borde px-3 py-2 text-sm">
+              <button
+                type="button"
+                onClick={() => setBorrador(null)}
+                className="rounded-md border border-borde px-3 py-2 text-sm"
+              >
                 Cancelar
               </button>
-              <button type="submit" className="rounded-md bg-marca px-4 py-2 text-sm font-semibold text-sobre-marca hover:bg-marca-fuerte">
+              <button
+                type="submit"
+                className="rounded-md bg-marca px-4 py-2 text-sm font-semibold text-sobre-marca hover:bg-marca-fuerte"
+              >
                 Guardar rol
               </button>
             </div>
@@ -223,7 +252,12 @@ export function Autores() {
                             titulo="Editar"
                             onClick={() => {
                               setOk(null);
-                              setBorrador({ id: r.id, nombre: r.nombre, descripcion: r.descripcion ?? "", permisos: r.permisos });
+                              setBorrador({
+                                id: r.id,
+                                nombre: r.nombre,
+                                descripcion: r.descripcion ?? "",
+                                permisos: r.permisos,
+                              });
                             }}
                           />
                           <BotonAccion tipo="eliminar" titulo="Eliminar" onClick={() => setPorEliminar(r)} />

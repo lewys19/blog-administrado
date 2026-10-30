@@ -9,6 +9,12 @@ argon2-cffi==25.1.0
 PyJWT==2.15.1
 redis==8.1.0
 tzdata==2025.2
+pillow==13.0.0
+python-multipart==0.0.32
+# Artículos: Markdown → HTML con código resaltado, y limpieza del HTML (sin scripts ni atributos peligrosos).
+markdown==3.11.2
+pygments==2.21.0
+nh3==0.3.7
 
 # Desarrollo y pruebas
 pytest==9.1.1

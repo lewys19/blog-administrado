@@ -7,12 +7,14 @@ from app.core.permisos import PERMISOS
 
 
 class ResumenOut(BaseModel):
-    """Cifras del dashboard. Las de visitas, ingresos, artículos y comentarios llegan en sus sprints."""
+    """Cifras del dashboard. Las de visitas, ingresos y comentarios llegan en sus sprints."""
 
     usuarios: int
     usuarios_nuevos_7d: int
     usuarios_activos_hoy: int  # ingresaron hoy (UTC)
     equipo: int  # cuentas con acceso al panel
+    articulos_publicados: int
+    articulos_en_revision: int
 
 
 class RolCorto(BaseModel):

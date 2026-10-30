@@ -27,7 +27,13 @@ export function BotonAccion({
   onClick: () => void;
 }) {
   return (
-    <button type="button" title={titulo} aria-label={titulo} onClick={onClick} className={`p-2 text-white ${COLOR_ACCION[tipo]}`}>
+    <button
+      type="button"
+      title={titulo}
+      aria-label={titulo}
+      onClick={onClick}
+      className={`p-2 text-white ${COLOR_ACCION[tipo]}`}
+    >
       <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
         <path d={ICONO_ACCION[tipo]} fill="currentColor" />
       </svg>
@@ -62,7 +68,13 @@ export function Paginacion({
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-borde px-4 py-3">
       <div className="flex items-center gap-1">
         <span className="mr-1 text-sm text-texto-2">Página</span>
-        <button type="button" className={`${clase} hover:bg-fondo`} disabled={pagina === 1} onClick={() => alCambiar(pagina - 1)} aria-label="Anterior">
+        <button
+          type="button"
+          className={`${clase} hover:bg-fondo`}
+          disabled={pagina === 1}
+          onClick={() => alCambiar(pagina - 1)}
+          aria-label="Anterior"
+        >
           ‹
         </button>
         {visibles.map((p, i) => (
@@ -96,11 +108,25 @@ export function Paginacion({
 }
 
 export function Aviso({ ok, error }: { ok?: string | null; error?: string | null }) {
-  if (error) return <p role="alert" className="rounded-lg bg-error/10 px-3 py-2 text-sm text-error">{error}</p>;
-  if (ok) return <p role="status" className="rounded-lg bg-green-600/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">{ok}</p>;
+  if (error)
+    return (
+      <p role="alert" className="rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
+        {error}
+      </p>
+    );
+  if (ok)
+    return (
+      <p role="status" className="rounded-lg bg-green-600/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
+        {ok}
+      </p>
+    );
   return null;
 }
 
 export function Caja({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`overflow-hidden rounded-xl border border-borde bg-superficie shadow-sm ${className}`}>{children}</div>;
+  return (
+    <div className={`overflow-hidden rounded-xl border border-borde bg-superficie shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
 }

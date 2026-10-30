@@ -70,6 +70,8 @@ def requiere_permiso(permiso: str) -> Callable[[Usuario], Usuario]:
 VerUsuarios = Annotated[Usuario, Depends(requiere_permiso("usuarios.ver"))]
 EditarUsuarios = Annotated[Usuario, Depends(requiere_permiso("usuarios.editar"))]
 GestionarRoles = Annotated[Usuario, Depends(requiere_permiso("roles.gestionar"))]
+EscribirArticulos = Annotated[Usuario, Depends(requiere_permiso("articulos.escribir"))]
+GestionarCategorias = Annotated[Usuario, Depends(requiere_permiso("categorias.gestionar"))]
 
 
 def ip_cliente(request: Request) -> str:

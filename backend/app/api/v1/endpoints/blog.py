@@ -1,0 +1,61 @@
+"""Blog público: sin sesión. Solo lo publicado (o programado cuya fecha ya llegó)."""
+
+from datetime import datetime
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
+
+from app.almacen import Almacen, obtener_almacen
+from app.api.deps import Db
+from app.schemas.contenido import ArticuloPublico, AutorConArticulos, CategoriaOut, EtiquetaOut, PaginaArticulos
+from app.services import articulos, taxonomia
+
+router = APIRouter(prefix="/blog", tags=["Blog"])
+AlmacenDep = Annotated[Almacen, Depends(obtener_almacen)]
+Slug = Annotated[str | None, Query(max_length=80)]
+
+
+class EntradaMapa(BaseModel):
+    slug: str
+    actualizado_en: datetime
+
+
+@router.get("/articulos", response_model=PaginaArticulos)
+def listar(
+    db: Db,
+    almacen: AlmacenDep,
+    pagina: Annotated[int, Query(ge=1)] = 1,
+    por_pagina: Annotated[int, Query(ge=1, le=50)] = 12,
+    categoria: Slug = None,
+    etiqueta: Slug = None,
+    autor: Slug = None,
+    q: Annotated[str | None, Query(max_length=100, description="Búsqueda en español")] = None,
+) -> PaginaArticulos:
+    return articulos.listar_publicos(db, almacen, pagina, por_pagina, categoria, etiqueta, autor, q)
+
+
+@router.get("/articulos/{slug}", response_model=ArticuloPublico)
+def ver(slug: str, db: Db, almacen: AlmacenDep) -> ArticuloPublico:
+    return articulos.ver_publico(db, almacen, slug)
+
+
+@router.get("/categorias", response_model=list[CategoriaOut])
+def categorias(db: Db) -> list[CategoriaOut]:
+    return taxonomia.listar_categorias(db)
+
+
+@router.get("/etiquetas", response_model=list[EtiquetaOut])
+def etiquetas(db: Db) -> list[EtiquetaOut]:
+    return [e for e in taxonomia.listar_etiquetas(db) if e.articulos]
+
+
+@router.get("/autores/{username}", response_model=AutorConArticulos)
+def autor(username: str, db: Db, almacen: AlmacenDep) -> AutorConArticulos:
+    return articulos.autor_publico(db, almacen, username)
+
+
+@router.get("/mapa", response_model=list[EntradaMapa])
+def mapa(db: Db) -> list[EntradaMapa]:
+    """Todo lo publicado, para el sitemap.xml de la web."""
+    return [EntradaMapa(slug=s, actualizado_en=f) for s, f in articulos.mapa_del_sitio(db)]
