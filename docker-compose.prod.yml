@@ -1,0 +1,88 @@
+# El blog en el servidor: usa las imágenes que GitHub Actions sube a GHCR (no necesita el código).
+# En el VPS solo hacen falta este archivo (como ~/blog/docker-compose.yml) y el .env (ver .env.prod.example).
+# Los puertos 80/443 los atiende el proxy compartido (~/proxy), que llega a la web por la red "proxy".
+#   1. docker login ghcr.io   (una vez; con un token classic de solo lectura de paquetes)
+#   2. docker compose pull
+#   3. docker compose up -d
+# Para volver a una versión anterior: VERSION=<hash del commit> en el .env y repetir 2 y 3.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: blog-db
+    environment:
+      POSTGRES_DB: zcorp
+      POSTGRES_USER: zcorp
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      - blog-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zcorp -d zcorp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: blog-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/lewys19/blog-administrado-api:${VERSION:-latest}
+    container_name: blog-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://zcorp:${DB_PASSWORD}@db:5432/zcorp
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?Falta SECRET_KEY en el archivo .env (mínimo 32 caracteres)}
+      SITIO_URL: ${SITIO_URL:?Falta SITIO_URL en el archivo .env (por ejemplo https://blog.zcorp23.com)}
+      CORS_ORIGINS: ${SITIO_URL}
+      CARPETA_MEDIA: /app/media
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PUERTO: ${SMTP_PUERTO:-587}
+      SMTP_USUARIO: ${SMTP_USUARIO:-}
+      SMTP_CLAVE: ${SMTP_CLAVE:-}
+      SMTP_SEGURIDAD: ${SMTP_SEGURIDAD:-starttls}
+      CORREO_REMITENTE: ${CORREO_REMITENTE:-zcorp-stack <no-responder@zcorp23.com>}
+      CARPETA_BUZON: /app/media/.buzon
+    volumes:
+      - blog-media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      # Al arrancar corre las migraciones.
+      start_period: 120s
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/lewys19/blog-administrado-web:${VERSION:-latest}
+    container_name: blog-web
+    # La imagen ya trae API_INTERNA=http://api:8000 y SITIO_URL (fijados al compilar en GitHub Actions).
+    networks:
+      - default
+      - proxy
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  # La crea el proxy compartido. Si falta: docker network create proxy
+  proxy:
+    external: true
+
+volumes:
+  blog-db:
+  blog-media:

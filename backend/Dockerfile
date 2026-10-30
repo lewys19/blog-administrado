@@ -29,7 +29,8 @@ for d in (hoy, anterior):
         print("No se pudo bajar", d, error)
 PY
 
-RUN useradd --system --create-home zcorp
+# /app/media: portadas de los artículos (volumen persistente en docker-compose.prod.yml).
+RUN useradd --system --create-home zcorp && mkdir -p /app/media && chown zcorp /app/media
 USER zcorp
 
 EXPOSE 8000

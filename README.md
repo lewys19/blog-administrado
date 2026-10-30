@@ -40,6 +40,31 @@ Variables: `SITIO_URL` (dirección pública del blog, va en los enlaces), `SMTP_
 `SMTP_USUARIO`, `SMTP_CLAVE`, `SMTP_SEGURIDAD` (`starttls`, `ssl` o `ninguna`) y `CORREO_REMITENTE`
 (por ejemplo `zcorp-stack <boletin@tudominio.com>`; usa una dirección de tu dominio para no caer en spam).
 
+## Despliegue (VPS con Docker)
+
+Mismo esquema que Altoque: GitHub Actions compila y sube las imágenes al hacer push a `main`
+(`ghcr.io/lewys19/blog-administrado-api` y `-web`); el VPS solo descarga y arranca.
+
+1. DNS: registro A `blog` → IP del VPS (en el cPanel de zcorp23.com).
+2. En el VPS, carpeta `~/blog` con `docker-compose.prod.yml` (renombrado a `docker-compose.yml`) y `.env`
+   (ver `.env.prod.example`, `chmod 600`).
+3. Bloque en el Caddyfile del proxy compartido (`~/proxy/Caddyfile`) y `docker compose restart` del proxy:
+
+   ```
+   blog.zcorp23.com {
+   	import seguridad
+   	encode zstd gzip
+   	request_body {
+   		max_size 12MB
+   	}
+   	reverse_proxy blog-web:3000
+   }
+   ```
+4. `docker compose pull && docker compose up -d` (la API corre las migraciones al arrancar).
+5. Administrador: `docker compose exec api python -m app.cli crear-admin --email TU_CORREO --nombre "Tu nombre"`.
+
+Para cambiar la dirección pública: variable `SITIO_URL` del repositorio (la web la fija al compilar) y la del `.env`.
+
 ## Puertos
 
 | Servicio | Puerto |
