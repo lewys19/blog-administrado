@@ -245,3 +245,44 @@ export interface PaginaComentarios {
   conteo: Record<EstadoComentario, number>;
   comentarios: ComentarioPanel[];
 }
+
+// ---------- Newsletter ----------
+
+export type EstadoSuscriptor = "pendiente" | "confirmado" | "baja";
+
+export interface Suscriptor {
+  id: number;
+  correo: string;
+  estado: EstadoSuscriptor;
+  creado_en: string;
+  confirmado_en: string | null;
+  baja_en: string | null;
+}
+
+export interface PaginaSuscriptores {
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  conteo: Record<EstadoSuscriptor, number> & { nuevos_30d: number };
+  suscriptores: Suscriptor[];
+}
+
+export interface ArticuloParaEnviar {
+  id: number;
+  titulo: string;
+  slug: string;
+  publicado_en: string;
+  enviado_en: string | null;
+}
+
+export interface Envio {
+  id: number;
+  asunto: string;
+  articulo_slug: string | null;
+  estado: "enviando" | "enviado" | "error";
+  total: number;
+  enviados: number;
+  fallidos: number;
+  creado_en: string;
+  terminado_en: string | null;
+}

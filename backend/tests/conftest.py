@@ -31,7 +31,7 @@ Cabeceras = dict[str, str]
 ADMINISTRADOR, EDITOR, REDACTOR, INVITADO = 1, 2, 3, 4
 
 URL_PRUEBAS = make_url(os.environ.get("DATABASE_URL_PRUEBAS") or settings.DATABASE_URL).set(database="zcorp_pruebas")
-TABLAS_DE_DATOS = "comentarios, visitas, articulo_etiqueta, articulos, etiquetas, tokens_refresco, usuarios"
+TABLAS_DE_DATOS = "envios, suscriptores, comentarios, visitas, articulo_etiqueta, articulos, etiquetas, tokens_refresco, usuarios"
 
 
 def _crear_base_si_falta() -> None:
@@ -62,7 +62,7 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
         conexion.execute(text("DELETE FROM categorias WHERE id > 6"))  # las 6 de la migración 0002 se quedan
     # Los intentos de ingreso viven en Redis: cada prueba empieza sin bloqueos.
     cliente = redis.Redis.from_url(settings.REDIS_URL)
-    for patron in ("login:*", "visitas:*", "comentarios:*"):
+    for patron in ("login:*", "visitas:*", "comentarios:*", "boletin:*"):
         for clave in cliente.scan_iter(patron):
             cliente.delete(clave)
     return sessionmaker(bind=engine, autoflush=False, autocommit=False)

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { FormBoletin } from "@/components/blog/FormBoletin";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { cifra, pais } from "@/lib/formato";
 import type { ArticuloTarjeta, AutorFicha, Cuenta, Etiqueta, MasLeido } from "@/lib/tipos";
@@ -181,7 +182,7 @@ export function Publicidad() {
   );
 }
 
-/** Lugar del boletín (se activa en el Sprint de Newsletter). */
+/** El boletín: suscripción con confirmación por correo. */
 export function Newsletter() {
   return (
     <Caja>
@@ -194,28 +195,7 @@ export function Newsletter() {
           <p className="text-sm text-texto-2">Recibe los mejores artículos, tutoriales y noticias en tu correo.</p>
         </div>
       </div>
-      <form className="mt-4 space-y-2" aria-describedby="boletin-pronto">
-        <label htmlFor="boletin-correo" className="sr-only">
-          Tu correo electrónico
-        </label>
-        <input
-          id="boletin-correo"
-          type="email"
-          disabled
-          placeholder="Tu correo electrónico"
-          className="w-full rounded-lg border border-borde bg-fondo px-3 py-2 text-sm"
-        />
-        <button
-          type="button"
-          disabled
-          className="w-full rounded-lg bg-marca/70 px-3 py-2 text-sm font-semibold text-white"
-        >
-          Suscribirme
-        </button>
-        <p id="boletin-pronto" className="text-center text-xs text-texto-2">
-          Muy pronto podrás suscribirte.
-        </p>
-      </form>
+      <FormBoletin />
     </Caja>
   );
 }

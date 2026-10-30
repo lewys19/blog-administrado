@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, blog, comentarios, contenido, estadisticas, panel, yo
+from app.api.v1.endpoints import auth, blog, comentarios, contenido, estadisticas, newsletter, panel, yo
 
 api_router = APIRouter()
 
@@ -13,3 +13,4 @@ api_router.include_router(contenido.router)
 api_router.include_router(blog.router)
 api_router.include_router(estadisticas.router)
 api_router.include_router(comentarios.router)
+api_router.include_router(newsletter.router)

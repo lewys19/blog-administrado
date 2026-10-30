@@ -42,6 +42,21 @@ class Settings(BaseSettings):
     BASE_PAISES: str = "./geo/pais.mmdb"
     MAX_VISITAS_POR_MINUTO: int = 60  # por IP; más que eso es un robot
     MAX_COMENTARIOS_POR_HORA: int = 5  # por IP
+    MAX_SUSCRIPCIONES_POR_HORA: int = 5  # por IP (formulario del boletín)
+
+    # Dirección pública del blog: va en los enlaces de los correos (confirmar, leer, darse de baja).
+    SITIO_URL: str = "http://localhost:3300"
+
+    # Correo saliente (SMTP). Sirve el de tu hosting, Gmail (con contraseña de aplicación), Brevo, etc.
+    # Sin SMTP_HOST no se envía nada: cada correo se guarda como .eml en CARPETA_BUZON (para probar).
+    SMTP_HOST: str = ""
+    SMTP_PUERTO: int = 587
+    SMTP_USUARIO: str = ""
+    SMTP_CLAVE: str = ""
+    SMTP_SEGURIDAD: str = "starttls"  # starttls (puerto 587), ssl (465) o ninguna
+    CORREO_REMITENTE: str = "zcorp-stack <no-responder@localhost>"
+    CARPETA_BUZON: str = "./buzon"
+
     # Zona con la que se cortan los días y meses de las estadísticas ("hoy" empieza a medianoche de Lima).
     ZONA_HORARIA: str = "America/Lima"
 

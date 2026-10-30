@@ -32,6 +32,14 @@ El blog cuenta sus visitas sin Google Analytics, sin cookies y sin guardar la IP
 El país sale de la cabecera `CF-IPCountry` (si hay Cloudflare delante) o de la base de
 [DB-IP](https://db-ip.com) (licencia CC BY 4.0, pide mencionarla); sin ninguna de las dos, del idioma del navegador.
 
+## Correo (boletín)
+
+El boletín envía por SMTP: sirve el correo de tu hosting, Gmail (con contraseña de aplicación) o Brevo.
+Sin `SMTP_HOST` no sale nada: cada correo se guarda como `.eml` en `backend/buzon/` para revisarlo.
+Variables: `SITIO_URL` (dirección pública del blog, va en los enlaces), `SMTP_HOST`, `SMTP_PUERTO` (587),
+`SMTP_USUARIO`, `SMTP_CLAVE`, `SMTP_SEGURIDAD` (`starttls`, `ssl` o `ninguna`) y `CORREO_REMITENTE`
+(por ejemplo `zcorp-stack <boletin@tudominio.com>`; usa una dirección de tu dominio para no caer en spam).
+
 ## Puertos
 
 | Servicio | Puerto |

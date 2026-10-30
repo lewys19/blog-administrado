@@ -120,7 +120,6 @@ export const SECCIONES: Seccion[] = [
     grupo: "Herramientas",
     icono: "M3 5h18v14H3zm0 0 9 7 9-7",
     permiso: "newsletter.gestionar",
-    sprint: 4,
     descripcion: "Suscriptores con confirmación por correo y envío de cada artículo nuevo.",
   },
   {
