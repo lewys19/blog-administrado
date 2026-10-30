@@ -23,6 +23,7 @@ export interface Resumen {
   articulos_en_revision: number;
   /** null: tu rol no ve estadísticas. */
   visitas: ResumenVisitas | null;
+  comentarios_pendientes: number | null;
 }
 
 // ---------- Estadísticas ----------
@@ -202,6 +203,7 @@ export interface MasLeido {
 
 export interface ArticuloPublico extends ArticuloTarjeta {
   vistas: number;
+  comentarios: number;
   sobre_autor: AutorFicha;
   contenido_html: string;
   etiquetas: Corto[];
@@ -217,4 +219,29 @@ export interface Autor {
   username: string;
   biografia: string | null;
   articulos: ArticuloTarjeta[];
+}
+
+// ---------- Comentarios ----------
+
+export type EstadoComentario = "pendiente" | "aprobado" | "spam";
+
+export interface ComentarioPublico {
+  id: number;
+  nombre: string;
+  contenido: string; // texto plano
+  creado_en: string;
+}
+
+export interface ComentarioPanel extends ComentarioPublico {
+  correo: string;
+  estado: EstadoComentario;
+  articulo: Corto; // nombre = título
+}
+
+export interface PaginaComentarios {
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  conteo: Record<EstadoComentario, number>;
+  comentarios: ComentarioPanel[];
 }

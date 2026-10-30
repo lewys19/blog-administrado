@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     CABECERA_PAIS: str = "CF-IPCountry"
     BASE_PAISES: str = "./geo/pais.mmdb"
     MAX_VISITAS_POR_MINUTO: int = 60  # por IP; más que eso es un robot
+    MAX_COMENTARIOS_POR_HORA: int = 5  # por IP
     # Zona con la que se cortan los días y meses de las estadísticas ("hoy" empieza a medianoche de Lima).
     ZONA_HORARIA: str = "America/Lima"
 

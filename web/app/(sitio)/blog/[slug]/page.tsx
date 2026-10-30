@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { Comentarios } from "@/components/blog/Comentarios";
 import { Compartir } from "@/components/blog/Compartir";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
-import { Avatar, Caja, Migas, Newsletter, Publicidad, Relacionados, SobreAutor } from "@/components/blog/Lateral";
+import { Avatar, Migas, Newsletter, Publicidad, Relacionados, SobreAutor } from "@/components/blog/Lateral";
 import { cifra, fechaLarga } from "@/lib/formato";
 import { indice } from "@/lib/indice";
 import { obtener } from "@/lib/servidor";
 import { NOMBRE_SITIO, SITIO_URL } from "@/lib/sitio";
-import type { ArticuloPublico } from "@/lib/tipos";
+import type { ArticuloPublico, ComentarioPublico } from "@/lib/tipos";
 
 type Props = PageProps<"/blog/[slug]">;
 
@@ -48,7 +49,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PaginaArticulo({ params }: Props) {
-  const a = await cargar((await params).slug);
+  const { slug } = await params;
+  const [a, comentarios] = await Promise.all([
+    cargar(slug),
+    obtener<ComentarioPublico[]>(`/blog/articulos/${encodeURIComponent(slug)}/comentarios`),
+  ]);
   if (!a) notFound();
 
   // Datos estructurados (Schema.org): Google entiende que es un artículo, de quién y de cuándo.
@@ -117,6 +122,10 @@ export default async function PaginaArticulo({ params }: Props) {
           <span className="flex items-center gap-1.5">
             <Icono d={ICONOS.ojo} className="h-4 w-4" /> {cifra(a.vistas)} {a.vistas === 1 ? "vista" : "vistas"}
           </span>
+          <a href="#comentarios" className="flex items-center gap-1.5 hover:text-marca-fuerte">
+            <Icono d={ICONOS.comentario} className="h-4 w-4" /> {a.comentarios}{" "}
+            {a.comentarios === 1 ? "comentario" : "comentarios"}
+          </a>
           <div className="sm:ml-auto">
             <Compartir url={url} titulo={a.titulo} />
           </div>
@@ -172,13 +181,7 @@ export default async function PaginaArticulo({ params }: Props) {
           <Compartir url={url} titulo={a.titulo} />
         </div>
 
-        {/* Lugar de los comentarios: se activan en el Sprint de Comentarios. */}
-        <Caja className="mt-8">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
-            <Icono d={ICONOS.comentario} className="h-5 w-5 text-marca-fuerte" /> Comentarios
-          </h2>
-          <p className="mt-2 text-sm text-texto-2">Muy pronto podrás comentar y conversar con el autor aquí.</p>
-        </Caja>
+        <Comentarios slug={a.slug} comentarios={comentarios ?? []} />
       </article>
 
       <aside className="space-y-6" aria-label="Barra lateral">

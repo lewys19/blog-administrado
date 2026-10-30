@@ -73,6 +73,7 @@ GestionarRoles = Annotated[Usuario, Depends(requiere_permiso("roles.gestionar"))
 EscribirArticulos = Annotated[Usuario, Depends(requiere_permiso("articulos.escribir"))]
 GestionarCategorias = Annotated[Usuario, Depends(requiere_permiso("categorias.gestionar"))]
 VerEstadisticas = Annotated[Usuario, Depends(requiere_permiso("estadisticas.ver"))]
+ModerarComentarios = Annotated[Usuario, Depends(requiere_permiso("comentarios.moderar"))]
 
 
 def ip_cliente(request: Request) -> str:

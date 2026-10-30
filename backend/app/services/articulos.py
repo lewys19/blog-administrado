@@ -23,7 +23,9 @@ from app.core.slugs import slugificar
 from app.models import (
     Articulo,
     Categoria,
+    Comentario,
     EstadoArticulo,
+    EstadoComentario,
     Etiqueta,
     Usuario,
     Visita,
@@ -360,6 +362,10 @@ def ver_publico(db: Session, almacen: Almacen, slug: str) -> ArticuloPublico:
     return ArticuloPublico(
         **_tarjeta(a, almacen).model_dump(),
         vistas=db.scalar(select(func.count()).select_from(Visita).where(Visita.articulo_id == a.id)) or 0,
+        comentarios=db.scalar(
+            select(func.count()).select_from(Comentario)
+            .where(Comentario.articulo_id == a.id, Comentario.estado == EstadoComentario.APROBADO)
+        ) or 0,  # fmt: skip
         sobre_autor=AutorFicha(
             nombre=a.autor.nombre, username=a.autor.username, biografia=a.autor.biografia,
             articulos=publicados_del_autor or 0,

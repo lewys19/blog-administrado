@@ -59,8 +59,7 @@ export const SECCIONES: Seccion[] = [
     grupo: "Comunidad",
     icono: "M4 4h16v12H8l-4 4z",
     permiso: "comentarios.moderar",
-    sprint: 3,
-    descripcion: "Aprobar, eliminar, marcar como spam y bloquear usuarios.",
+    descripcion: "Aprobar, ocultar, borrar y marcar como spam lo que escriben los lectores.",
   },
   {
     ruta: "usuarios",

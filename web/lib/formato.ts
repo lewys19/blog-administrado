@@ -19,6 +19,16 @@ export function hace(iso: string, ahora: Date = new Date()): string {
 }
 
 /** "29 de octubre de 2026" (la fecha de un artículo). */
+/** «29 oct. 2026»: para tarjetas pequeñas. */
+export function fechaCorta(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-PE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "America/Lima",
+  });
+}
+
 export function fechaLarga(iso: string): string {
   return new Date(iso).toLocaleDateString("es-PE", {
     day: "numeric",

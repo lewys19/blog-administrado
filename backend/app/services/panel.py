@@ -21,7 +21,7 @@ from app.schemas.panel import (
     UsuarioCambiosAdmin,
     UsuarioFilaOut,
 )
-from app.services import articulos, auth, estadisticas
+from app.services import articulos, auth, comentarios, estadisticas
 
 
 def resumen(db: Session, quien: Usuario) -> ResumenOut:
@@ -38,6 +38,7 @@ def resumen(db: Session, quien: Usuario) -> ResumenOut:
         )
         or 0,
         visitas=estadisticas.resumen(db) if quien.puede("estadisticas.ver") else None,
+        comentarios_pendientes=comentarios.pendientes(db) if quien.puede("comentarios.moderar") else None,
     )
 
 

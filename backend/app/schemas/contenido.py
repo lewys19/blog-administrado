@@ -164,6 +164,7 @@ class MasLeido(BaseModel):
 
 class ArticuloPublico(ArticuloTarjeta):
     vistas: int  # todas las visitas que tuvo
+    comentarios: int  # aprobados
     sobre_autor: AutorFicha
     contenido_html: str
     etiquetas: list[Corto]

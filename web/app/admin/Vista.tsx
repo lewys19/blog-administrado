@@ -68,7 +68,15 @@ export function Dashboard() {
       valor: r?.usuarios,
       detalle: r ? `${r.usuarios_nuevos_7d} nuevos en 7 días` : "",
     },
-    { titulo: "Comentarios pendientes", sprint: 3 },
+    ...(puede(yo, "comentarios.moderar")
+      ? [
+          {
+            titulo: "Comentarios pendientes",
+            valor: r?.comentarios_pendientes ?? undefined,
+            detalle: r ? (r.comentarios_pendientes ? "Por revisar en Comentarios" : "Todo al día") : "",
+          },
+        ]
+      : []),
   ];
   // Solo lo que este rol podrá usar (igual que la barra lateral).
   const proximas = SECCIONES.filter((s) => s.sprint && puede(yo, s.permiso)).sort(

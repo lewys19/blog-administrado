@@ -8,7 +8,7 @@ from app.schemas.estadistica import ResumenVisitas
 
 
 class ResumenOut(BaseModel):
-    """Cifras del dashboard. Las de ingresos y comentarios llegan en sus sprints."""
+    """Cifras del dashboard. Las de ingresos llegan en su sprint."""
 
     usuarios: int
     usuarios_nuevos_7d: int
@@ -17,6 +17,7 @@ class ResumenOut(BaseModel):
     articulos_publicados: int
     articulos_en_revision: int
     visitas: ResumenVisitas | None  # solo para quien puede ver estadísticas
+    comentarios_pendientes: int | None  # solo para quien modera comentarios
 
 
 class RolCorto(BaseModel):

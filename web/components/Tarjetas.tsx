@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ICONOS, Icono } from "@/components/blog/Iconos";
-import { fechaLarga } from "@/lib/formato";
+import { fechaCorta, fechaLarga } from "@/lib/formato";
 import type { ArticuloTarjeta } from "@/lib/tipos";
 
 function Portada({ a, clase }: { a: ArticuloTarjeta; clase: string }) {
@@ -69,8 +69,8 @@ export function Tarjeta({ a, compacta = false }: { a: ArticuloTarjeta; compacta?
         {!compacta && a.resumen && <p className="line-clamp-2 text-sm text-texto-2">{a.resumen}</p>}
         <div className="mt-auto pt-1">
           {compacta ? (
-            <p className="flex items-center gap-3 text-xs text-texto-2">
-              <time dateTime={a.publicado_en}>{fechaLarga(a.publicado_en)}</time>
+            <p className="flex items-center gap-3 text-xs whitespace-nowrap text-texto-2">
+              <time dateTime={a.publicado_en}>{fechaCorta(a.publicado_en)}</time>
               <span className="flex items-center gap-1">
                 <Icono d={ICONOS.reloj} className="h-3.5 w-3.5" /> {a.minutos_lectura} min
               </span>
