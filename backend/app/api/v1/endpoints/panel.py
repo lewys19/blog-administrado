@@ -21,8 +21,8 @@ router = APIRouter(prefix="/panel", tags=["Panel"])
 
 
 @router.get("/resumen", response_model=ResumenOut)
-def resumen(_quien: MiembroPanel, db: Db) -> ResumenOut:
-    return panel.resumen(db)
+def resumen(quien: MiembroPanel, db: Db) -> ResumenOut:
+    return panel.resumen(db, quien)
 
 
 # ---------- Usuarios ----------

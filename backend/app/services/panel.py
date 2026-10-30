@@ -21,10 +21,10 @@ from app.schemas.panel import (
     UsuarioCambiosAdmin,
     UsuarioFilaOut,
 )
-from app.services import articulos, auth
+from app.services import articulos, auth, estadisticas
 
 
-def resumen(db: Session) -> ResumenOut:
+def resumen(db: Session, quien: Usuario) -> ResumenOut:
     vivos = select(func.count()).select_from(Usuario).where(Usuario.eliminado_en.is_(None))
     inicio_de_hoy = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     return ResumenOut(
@@ -37,6 +37,7 @@ def resumen(db: Session) -> ResumenOut:
             select(func.count()).select_from(Articulo).where(Articulo.estado == EstadoArticulo.REVISION)
         )
         or 0,
+        visitas=estadisticas.resumen(db) if quien.puede("estadisticas.ver") else None,
     )
 
 

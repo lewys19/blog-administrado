@@ -4,10 +4,11 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from app.core.permisos import PERMISOS
+from app.schemas.estadistica import ResumenVisitas
 
 
 class ResumenOut(BaseModel):
-    """Cifras del dashboard. Las de visitas, ingresos y comentarios llegan en sus sprints."""
+    """Cifras del dashboard. Las de ingresos y comentarios llegan en sus sprints."""
 
     usuarios: int
     usuarios_nuevos_7d: int
@@ -15,6 +16,7 @@ class ResumenOut(BaseModel):
     equipo: int  # cuentas con acceso al panel
     articulos_publicados: int
     articulos_en_revision: int
+    visitas: ResumenVisitas | None  # solo para quien puede ver estadísticas
 
 
 class RolCorto(BaseModel):

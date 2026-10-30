@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { Columnas } from "@/components/panel/Graficos";
 import { Migas, puede, usePanel } from "@/components/panel/Panel";
 import { pedir } from "@/lib/api";
-import { cifra } from "@/lib/formato";
+import { cifra, duracion, variacion } from "@/lib/formato";
 import { SECCIONES } from "@/lib/secciones";
 import type { Resumen } from "@/lib/tipos";
 
@@ -42,9 +43,20 @@ export function Dashboard() {
       .catch(() => {});
   }, []);
 
+  const v = r?.visitas;
+  const verVisitas = puede(yo, "estadisticas.ver");
+  const cambioMes = v ? variacion(v.mes, v.mes_anterior) : null;
   const cifras: Cifra[] = [
-    { titulo: "Visitas hoy", sprint: 2 },
-    { titulo: "Visitas del mes", sprint: 2 },
+    ...(verVisitas
+      ? [
+          { titulo: "Visitas hoy", valor: v?.hoy, detalle: v ? `${cifra(v.lectores_hoy)} lectores únicos` : "" },
+          {
+            titulo: "Visitas del mes",
+            valor: v?.mes,
+            detalle: v ? (cambioMes ? `${cambioMes} frente al mes pasado a la misma fecha` : "Primer mes medido") : "",
+          },
+        ]
+      : []),
     { titulo: "Ingresos de AdSense", sprint: 6 },
     {
       titulo: "Artículos publicados",
@@ -84,6 +96,21 @@ export function Dashboard() {
           <Tarjeta key={c.titulo} c={c} oscura={i === 0} />
         ))}
       </div>
+
+      {verVisitas && (
+        <section className="mt-6 rounded-2xl border border-borde bg-superficie p-5">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-bold">Visitas de los últimos 12 meses</h2>
+            <p className="text-sm text-texto-2">
+              {v ? `Lectura promedio este mes: ${duracion(v.segundos_promedio_mes)} · ` : ""}
+              <Link href="/admin/estadisticas" className="font-medium text-marca-fuerte hover:underline">
+                Ver estadísticas →
+              </Link>
+            </p>
+          </div>
+          {v ? <Columnas puntos={v.por_mes} alto={180} /> : <div className="h-[220px] animate-pulse rounded-xl bg-fondo" />}
+        </section>
+      )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-borde bg-superficie p-5 lg:col-span-2">

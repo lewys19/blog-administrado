@@ -11,6 +11,24 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# País de las visitas: base gratuita de DB-IP (CC BY 4.0), la del mes o la del anterior.
+# Si no se puede bajar, la imagen se construye igual y el país sale del idioma del navegador.
+RUN python - <<'PY' || true
+import datetime, gzip, pathlib, urllib.request
+hoy = datetime.date.today()
+anterior = (hoy.replace(day=1) - datetime.timedelta(days=1))
+for d in (hoy, anterior):
+    try:
+        url = f"https://download.db-ip.com/free/dbip-country-lite-{d:%Y-%m}.mmdb.gz"
+        datos = urllib.request.urlopen(url, timeout=60).read()
+        pathlib.Path("geo").mkdir(exist_ok=True)
+        pathlib.Path("geo/pais.mmdb").write_bytes(gzip.decompress(datos))
+        print("Base de países:", url)
+        break
+    except Exception as error:
+        print("No se pudo bajar", d, error)
+PY
+
 RUN useradd --system --create-home zcorp
 USER zcorp
 

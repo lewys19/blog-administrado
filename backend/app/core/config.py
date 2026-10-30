@@ -36,6 +36,14 @@ class Settings(BaseSettings):
     # Lectura: palabras por minuto para estimar el tiempo de lectura de un artículo técnico.
     PALABRAS_POR_MINUTO: int = 200
 
+    # Analítica: país de cada visita. Primero la cabecera del proxy (Cloudflare manda CF-IPCountry);
+    # si no viene, la base gratuita de DB-IP (geo/pais.mmdb, se descarga al construir la imagen).
+    CABECERA_PAIS: str = "CF-IPCountry"
+    BASE_PAISES: str = "./geo/pais.mmdb"
+    MAX_VISITAS_POR_MINUTO: int = 60  # por IP; más que eso es un robot
+    # Zona con la que se cortan los días y meses de las estadísticas ("hoy" empieza a medianoche de Lima).
+    ZONA_HORARIA: str = "America/Lima"
+
 
 # Instancia única que importaremos en el resto del proyecto.
 settings = Settings()

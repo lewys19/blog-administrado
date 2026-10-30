@@ -130,7 +130,6 @@ export const SECCIONES: Seccion[] = [
     grupo: "Herramientas",
     icono: "M4 20V10m6 10V4m6 16v-7m4 7H2",
     permiso: "estadisticas.ver",
-    sprint: 2,
     descripcion: "Visitas, países, tiempo de lectura, artículos más vistos y CTR de anuncios.",
   },
   {

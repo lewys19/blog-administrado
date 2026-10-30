@@ -21,6 +21,58 @@ export interface Resumen {
   equipo: number;
   articulos_publicados: number;
   articulos_en_revision: number;
+  /** null: tu rol no ve estadísticas. */
+  visitas: ResumenVisitas | null;
+}
+
+// ---------- Estadísticas ----------
+
+export type Periodo = "7d" | "30d" | "12m";
+
+export interface Punto {
+  etiqueta: string; // "2026-10-29" o "2026-10"
+  visitas: number;
+  lectores: number;
+}
+
+export interface Cuenta {
+  clave: string | null;
+  visitas: number;
+}
+
+export interface ResumenVisitas {
+  hoy: number;
+  lectores_hoy: number;
+  mes: number;
+  mes_anterior: number;
+  segundos_promedio_mes: number;
+  por_mes: Punto[];
+}
+
+export interface Estadisticas {
+  periodo: Periodo;
+  desde: string;
+  hasta: string;
+  totales: {
+    visitas: number;
+    visitas_anterior: number;
+    lectores: number;
+    segundos_promedio: number;
+    profundidad_promedio: number;
+  };
+  serie: Punto[];
+  paises: Cuenta[];
+  origenes: Cuenta[];
+  referentes: Cuenta[];
+  dispositivos: Cuenta[];
+  articulos: {
+    id: number;
+    titulo: string;
+    slug: string;
+    visitas: number;
+    segundos_promedio: number;
+    profundidad_promedio: number;
+  }[];
 }
 
 export interface UsuarioFila {
