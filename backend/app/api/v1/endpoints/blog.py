@@ -8,7 +8,14 @@ from pydantic import BaseModel
 
 from app.almacen import Almacen, obtener_almacen
 from app.api.deps import Db
-from app.schemas.contenido import ArticuloPublico, AutorConArticulos, CategoriaOut, EtiquetaOut, PaginaArticulos
+from app.schemas.contenido import (
+    ArticuloPublico,
+    AutorConArticulos,
+    CategoriaOut,
+    EtiquetaOut,
+    MasLeido,
+    PaginaArticulos,
+)
 from app.services import articulos, taxonomia
 
 router = APIRouter(prefix="/blog", tags=["Blog"])
@@ -38,6 +45,12 @@ def listar(
 @router.get("/articulos/{slug}", response_model=ArticuloPublico)
 def ver(slug: str, db: Db, almacen: AlmacenDep) -> ArticuloPublico:
     return articulos.ver_publico(db, almacen, slug)
+
+
+@router.get("/mas-leidos", response_model=list[MasLeido])
+def mas_leidos(db: Db, almacen: AlmacenDep, limite: Annotated[int, Query(ge=1, le=10)] = 5) -> list[MasLeido]:
+    """Para la barra lateral: los más vistos de los últimos 30 días."""
+    return articulos.mas_leidos(db, almacen, limite)
 
 
 @router.get("/categorias", response_model=list[CategoriaOut])

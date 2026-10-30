@@ -24,7 +24,7 @@ export default async function PaginaEtiqueta({ params }: Props) {
   if (!e) notFound();
   const pagina = await obtener<PaginaArticulos>(`/blog/articulos?etiqueta=${encodeURIComponent(slug)}&por_pagina=30`);
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
+    <div className="mx-auto w-full max-w-7xl px-4 py-10">
       <p className="font-mono text-xs font-semibold tracking-widest text-marca-fuerte uppercase">Etiqueta</p>
       <h1 className="mt-1 text-4xl font-bold tracking-tight">#{e.nombre}</h1>
       <div className="mt-8">

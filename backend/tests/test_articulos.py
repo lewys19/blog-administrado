@@ -92,6 +92,12 @@ def test_slug_unico_y_busqueda_en_espanol(client: TestClient, registrar: Callabl
     assert client.get(f"{BLOG}/articulos", params={"categoria": "python"}).json()["total"] == 2
     rel = client.get(f"{BLOG}/articulos/{uno['slug']}").json()["relacionados"]
     assert [x["slug"] for x in rel] == [dos["slug"]]
+    # Si no hay suficientes del mismo tema, se completa con los más recientes.
+    tres = client.post(
+        f"{PANEL}/articulos", json=articulo(titulo="Otro tema", categoria_id=None, etiquetas=[], estado="publicado"), headers=h
+    ).json()
+    rel = client.get(f"{BLOG}/articulos/{uno['slug']}").json()["relacionados"]
+    assert [x["slug"] for x in rel] == [dos["slug"], tres["slug"]]
 
 
 def test_portada_se_recorta_para_redes(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:

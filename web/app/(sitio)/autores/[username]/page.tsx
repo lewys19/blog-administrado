@@ -18,7 +18,7 @@ export default async function PaginaAutor({ params }: Props) {
   const a = await obtener<Autor>(`/blog/autores/${encodeURIComponent((await params).username)}`);
   if (!a) notFound();
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
+    <div className="mx-auto w-full max-w-7xl px-4 py-10">
       <div className="flex items-center gap-4">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-lateral text-2xl font-bold text-white">
           {a.nombre.charAt(0).toUpperCase()}

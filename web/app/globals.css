@@ -3,6 +3,8 @@
 /* zcorp-stack: verde bosque (estilo del panel de referencia) sobre fondos claros con un tinte verde. */
 :root {
   --fondo: #eef3ef;
+  /* El blog público: blanco con detalles verdes. */
+  --pagina: #ffffff;
   --superficie: #ffffff;
   --texto: #13241b;
   --texto-2: #52685b;
@@ -23,6 +25,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --fondo: #0b1510;
+    --pagina: #0b1510;
     --superficie: #13211a;
     --texto: #e6efe9;
     --texto-2: #9fb3a7;
@@ -40,6 +43,7 @@
 
 @theme inline {
   --color-fondo: var(--fondo);
+  --color-pagina: var(--pagina);
   --color-superficie: var(--superficie);
   --color-texto: var(--texto);
   --color-texto-2: var(--texto-2);
@@ -112,10 +116,25 @@ summary {
 .contenido li + li {
   margin-top: 0.35em;
 }
+/* Cita destacada: caja verde suave con comillas grandes. */
 .contenido blockquote {
-  border-left: 3px solid var(--marca);
-  padding: 0.2em 0 0.2em 1em;
-  color: var(--texto-2);
+  position: relative;
+  border-radius: 0.9rem;
+  background: var(--marca-suave);
+  padding: 1em 1.25em 1em 3.4em;
+  color: var(--marca-fuerte);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.contenido blockquote::before {
+  content: "\201C";
+  position: absolute;
+  left: 0.45em;
+  top: -0.05em;
+  font-family: Georgia, serif;
+  font-size: 3.2rem;
+  line-height: 1;
+  color: var(--marca);
 }
 .contenido img {
   border-radius: 0.75rem;

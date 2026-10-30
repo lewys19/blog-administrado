@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Grilla, Meta } from "@/components/Tarjetas";
+import { Compartir } from "@/components/blog/Compartir";
+import { ICONOS, Icono } from "@/components/blog/Iconos";
+import { Avatar, Caja, Migas, Newsletter, Publicidad, Relacionados, SobreAutor } from "@/components/blog/Lateral";
+import { cifra, fechaLarga } from "@/lib/formato";
+import { indice } from "@/lib/indice";
 import { obtener } from "@/lib/servidor";
 import { NOMBRE_SITIO, SITIO_URL } from "@/lib/sitio";
 import type { ArticuloPublico } from "@/lib/tipos";
@@ -55,7 +59,11 @@ export default async function PaginaArticulo({ params }: Props) {
     description: a.meta_descripcion,
     datePublished: a.publicado_en,
     dateModified: a.actualizado_en,
-    author: { "@type": "Person", name: a.autor.nombre, url: `${SITIO_URL}/autores/${a.autor.username}` },
+    author: {
+      "@type": "Person",
+      name: a.autor.nombre,
+      url: `${SITIO_URL}/autores/${a.autor.username}`,
+    },
     publisher: { "@type": "Organization", name: NOMBRE_SITIO, url: SITIO_URL },
     mainEntityOfPage: `${SITIO_URL}/blog/${a.slug}`,
     image: a.imagen ? `${SITIO_URL}${a.imagen}` : undefined,
@@ -63,67 +71,122 @@ export default async function PaginaArticulo({ params }: Props) {
     articleSection: a.categoria?.nombre,
   };
 
+  const url = `${SITIO_URL}/blog/${a.slug}`;
+  const entradas = indice(a.contenido_html);
+
   return (
-    <article className="w-full">
+    <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datos).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(datos).replace(/</g, "\\u003c"),
+        }}
       />
-      <header className="mx-auto max-w-3xl px-4 pt-10">
-        {a.categoria && (
+      <article className="min-w-0">
+        <Migas
+          items={[
+            ...(a.categoria
+              ? [
+                  {
+                    texto: a.categoria.nombre,
+                    href: `/categoria/${a.categoria.slug}`,
+                  },
+                ]
+              : []),
+            { texto: a.titulo },
+          ]}
+        />
+        <h1 className="mt-4 text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl">{a.titulo}</h1>
+        {a.resumen && <p className="mt-3 text-lg text-texto-2">{a.resumen}</p>}
+
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-y border-borde py-3 text-sm text-texto-2">
           <Link
-            href={`/categoria/${a.categoria.slug}`}
-            className="font-mono text-xs font-semibold tracking-widest text-marca-fuerte uppercase"
+            href={`/autores/${a.autor.username}`}
+            className="flex items-center gap-2 font-semibold text-texto hover:text-marca-fuerte"
           >
-            {a.categoria.nombre}
+            <Avatar nombre={a.autor.nombre} className="h-8 w-8 text-sm" />
+            {a.autor.nombre}
           </Link>
+          <span className="flex items-center gap-1.5">
+            <Icono d={ICONOS.calendario} className="h-4 w-4" />
+            <time dateTime={a.publicado_en}>{fechaLarga(a.publicado_en)}</time>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Icono d={ICONOS.reloj} className="h-4 w-4" /> {a.minutos_lectura} min
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Icono d={ICONOS.ojo} className="h-4 w-4" /> {cifra(a.vistas)} {a.vistas === 1 ? "vista" : "vistas"}
+          </span>
+          <div className="sm:ml-auto">
+            <Compartir url={url} titulo={a.titulo} />
+          </div>
+        </div>
+
+        {a.imagen && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={a.imagen}
+            alt=""
+            width={1200}
+            height={630}
+            className="mt-6 w-full rounded-2xl border border-borde"
+          />
         )}
-        <h1 className="mt-2 text-4xl leading-tight font-bold tracking-tight text-balance sm:text-5xl">{a.titulo}</h1>
-        {a.resumen && <p className="mt-4 text-xl text-texto-2">{a.resumen}</p>}
-        <div className="mt-5">
-          <Meta a={a} />
-        </div>
-      </header>
-      {a.imagen && (
-        <div className="mx-auto mt-8 max-w-4xl px-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={a.imagen} alt="" width={1200} height={630} className="w-full rounded-2xl border border-borde" />
-        </div>
-      )}
-      {/* HTML generado y limpiado en el servidor (services/markdown.py): sin scripts ni atributos peligrosos. */}
-      <div className="contenido mx-auto mt-10 max-w-3xl px-4" dangerouslySetInnerHTML={{ __html: a.contenido_html }} />
-      <footer className="mx-auto mt-12 max-w-3xl space-y-8 px-4">
+
+        {entradas.length >= 2 && (
+          <nav aria-labelledby="indice-titulo" className="mt-6 rounded-2xl border border-borde bg-pagina p-5 shadow-sm">
+            <h2 id="indice-titulo" className="mb-3 font-bold">
+              Tabla de contenidos
+            </h2>
+            <ol className="space-y-1.5 text-sm">
+              {entradas.map((e) => (
+                <li key={e.id} className={e.nivel === 3 ? "pl-5" : ""}>
+                  <a href={`#${e.id}`} className="text-texto-2 hover:text-marca-fuerte">
+                    {e.texto}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        {/* HTML generado y limpiado en el servidor (services/markdown.py): sin scripts ni atributos peligrosos. */}
+        <div className="contenido mt-8" dangerouslySetInnerHTML={{ __html: a.contenido_html }} />
+
         {!!a.etiquetas.length && (
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-10 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold">Etiquetas:</span>
             {a.etiquetas.map((e) => (
               <Link
                 key={e.slug}
                 href={`/etiqueta/${e.slug}`}
-                className="rounded-full border border-borde bg-superficie px-3 py-1 text-sm hover:border-marca"
+                className="rounded-lg bg-marca-suave px-3 py-1 text-sm font-medium text-marca-fuerte hover:bg-marca hover:text-white"
               >
-                #{e.nombre}
+                {e.nombre}
               </Link>
             ))}
           </div>
         )}
-        <div className="flex items-center gap-4 rounded-2xl border border-borde bg-superficie p-5">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lateral text-xl font-bold text-white">
-            {a.autor.nombre.charAt(0).toUpperCase()}
-          </span>
-          <div>
-            <p className="text-sm text-texto-2">Escrito por</p>
-            <Link href={`/autores/${a.autor.username}`} className="font-semibold hover:underline">
-              {a.autor.nombre}
-            </Link>
-          </div>
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl bg-marca-suave/60 p-4 text-sm">
+          <span className="font-semibold">¿Te sirvió? Compártelo:</span>
+          <Compartir url={url} titulo={a.titulo} />
         </div>
-      </footer>
-      {!!a.relacionados.length && (
-        <section className="mx-auto mt-14 max-w-6xl px-4">
-          <h2 className="mb-5 text-2xl font-bold tracking-tight">Sigue leyendo</h2>
-          <Grilla articulos={a.relacionados} vacio="" />
-        </section>
-      )}
-    </article>
+
+        {/* Lugar de los comentarios: se activan en el Sprint de Comentarios. */}
+        <Caja className="mt-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Icono d={ICONOS.comentario} className="h-5 w-5 text-marca-fuerte" /> Comentarios
+          </h2>
+          <p className="mt-2 text-sm text-texto-2">Muy pronto podrás comentar y conversar con el autor aquí.</p>
+        </Caja>
+      </article>
+
+      <aside className="space-y-6" aria-label="Barra lateral">
+        <SobreAutor autor={a.sobre_autor} />
+        <Relacionados articulos={a.relacionados} />
+        <Publicidad />
+        <Newsletter />
+      </aside>
+    </div>
   );
 }

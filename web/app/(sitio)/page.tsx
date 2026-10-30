@@ -1,28 +1,26 @@
 import Link from "next/link";
 
+import { IconoCategoria } from "@/components/blog/Iconos";
+import { MasLeidos, Newsletter, Publicidad, TagsPopulares } from "@/components/blog/Lateral";
 import { Destacado, Grilla } from "@/components/Tarjetas";
 import { obtener } from "@/lib/servidor";
-import type { Categoria, Etiqueta, PaginaArticulos } from "@/lib/tipos";
+import type { Categoria, Etiqueta, MasLeido, PaginaArticulos } from "@/lib/tipos";
 
 export default async function Portada() {
-  const [pagina, categorias, etiquetas] = await Promise.all([
+  const [pagina, categorias, etiquetas, leidos] = await Promise.all([
     obtener<PaginaArticulos>("/blog/articulos?por_pagina=13"),
     obtener<Categoria[]>("/blog/categorias"),
     obtener<Etiqueta[]>("/blog/etiquetas"),
+    obtener<MasLeido[]>("/blog/mas-leidos?limite=5"),
   ]);
   const articulos = pagina?.articulos ?? [];
   const destacado = articulos.find((a) => a.destacado) ?? articulos[0];
   const resto = articulos.filter((a) => a !== destacado).slice(0, 12);
+  const principales = (categorias ?? []).filter((c) => !c.padre_id);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
-      <section className="mb-10">
-        <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">Tecnología, IA y programación</h1>
-        <p className="mt-3 max-w-2xl text-lg text-texto-2">
-          Guías prácticas con proyectos reales: Python, FastAPI, SQL, pruebas e inteligencia artificial.
-        </p>
-      </section>
-
+    <div className="mx-auto w-full max-w-7xl px-4 py-8">
+      <h1 className="sr-only">zcorp-stack: tecnología, IA y programación</h1>
       {destacado ? (
         <Destacado a={destacado} />
       ) : (
@@ -31,44 +29,38 @@ export default async function Portada() {
         </p>
       )}
 
-      <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_240px]">
+      {!!principales.length && (
+        <nav aria-label="Explorar por categoría" className="mt-6 flex flex-wrap gap-2">
+          {principales.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/categoria/${c.slug}`}
+              className="flex items-center gap-2 rounded-xl border border-borde bg-pagina px-3.5 py-2 text-sm font-semibold shadow-sm hover:border-marca hover:text-marca-fuerte"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-marca-suave text-marca-fuerte">
+                <IconoCategoria slug={c.slug} className="h-4 w-4" />
+              </span>
+              {c.nombre}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section>
-          <h2 className="mb-5 text-2xl font-bold tracking-tight">Lo más reciente</h2>
-          <Grilla articulos={resto} vacio="Pronto habrá más artículos aquí." />
-        </section>
-        <aside className="space-y-8">
-          <div>
-            <h2 className="mb-3 font-mono text-xs font-semibold tracking-widest text-texto-2 uppercase">Categorías</h2>
-            <ul className="space-y-1">
-              {(categorias ?? []).map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    href={`/categoria/${c.slug}`}
-                    className={`flex justify-between rounded-lg px-3 py-1.5 hover:bg-superficie ${c.padre_id ? "pl-7 text-sm" : ""}`}
-                  >
-                    <span>{c.nombre}</span>
-                    <span className="text-sm text-texto-2 tabular-nums">{c.articulos}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="mb-5 flex items-end justify-between gap-3 border-b border-borde pb-3">
+            <h2 className="text-2xl font-bold tracking-tight">Lo más reciente</h2>
+            <Link href="/categorias" className="text-sm font-semibold text-marca-fuerte hover:underline">
+              Ver categorías →
+            </Link>
           </div>
-          {!!etiquetas?.length && (
-            <div>
-              <h2 className="mb-3 font-mono text-xs font-semibold tracking-widest text-texto-2 uppercase">Etiquetas</h2>
-              <div className="flex flex-wrap gap-2">
-                {etiquetas.slice(0, 20).map((e) => (
-                  <Link
-                    key={e.slug}
-                    href={`/etiqueta/${e.slug}`}
-                    className="rounded-full border border-borde bg-superficie px-3 py-1 text-sm hover:border-marca"
-                  >
-                    #{e.nombre}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          <Grilla articulos={resto} vacio="Pronto habrá más artículos aquí." columnas={2} />
+        </section>
+        <aside className="space-y-6" aria-label="Barra lateral">
+          <MasLeidos articulos={leidos ?? []} />
+          <TagsPopulares etiquetas={etiquetas ?? []} />
+          <Publicidad />
+          <Newsletter />
         </aside>
       </div>
     </div>

@@ -9,7 +9,7 @@ Un artículo «programado» se ve en el blog desde su fecha, sin ningún proceso
 
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import status
 from sqlalchemy import ColumnElement, Select, and_, func, or_, select
@@ -20,7 +20,15 @@ from app.almacen import Almacen
 from app.core.errores import ErrorNegocio
 from app.core.fechas import ahora
 from app.core.slugs import slugificar
-from app.models import Articulo, Categoria, EstadoArticulo, Etiqueta, Usuario, articulo_etiqueta
+from app.models import (
+    Articulo,
+    Categoria,
+    EstadoArticulo,
+    Etiqueta,
+    Usuario,
+    Visita,
+    articulo_etiqueta,
+)
 from app.schemas.contenido import (
     ArticuloEditor,
     ArticuloFila,
@@ -29,8 +37,10 @@ from app.schemas.contenido import (
     ArticuloTarjeta,
     AutorConArticulos,
     AutorCorto,
+    AutorFicha,
     AutorPublico,
     Corto,
+    MasLeido,
     PaginaArticulos,
     PaginaArticulosPanel,
 )
@@ -313,7 +323,7 @@ def listar_publicos(
 
 
 def _relacionados(db: Session, almacen: Almacen, a: Articulo, cuantos: int = 3) -> list[ArticuloTarjeta]:
-    """Misma categoría o alguna etiqueta en común; los más nuevos."""
+    """Misma categoría o alguna etiqueta en común; los más nuevos. Si faltan, se completa con los más recientes."""
     etiquetas = [e.id for e in a.etiquetas]
     condicion = Articulo.categoria_id == a.categoria_id if a.categoria_id else None
     if etiquetas:
@@ -321,13 +331,22 @@ def _relacionados(db: Session, almacen: Almacen, a: Articulo, cuantos: int = 3) 
             select(articulo_etiqueta.c.articulo_id).where(articulo_etiqueta.c.etiqueta_id.in_(etiquetas))
         )
         condicion = or_(condicion, en_comun) if condicion is not None else en_comun
-    if condicion is None:
-        return []
-    otros = db.scalars(
-        _con_relaciones(select(Articulo).where(visible(), Articulo.id != a.id, condicion))
-        .order_by(Articulo.publicado_en.desc())
-        .limit(cuantos)
-    ).all()
+    otros: list[Articulo] = []
+    if condicion is not None:
+        otros = list(
+            db.scalars(
+                _con_relaciones(select(Articulo).where(visible(), Articulo.id != a.id, condicion))
+                .order_by(Articulo.publicado_en.desc())
+                .limit(cuantos)
+            ).all()
+        )
+    if len(otros) < cuantos:
+        fuera = [a.id, *(o.id for o in otros)]
+        otros += db.scalars(
+            _con_relaciones(select(Articulo).where(visible(), Articulo.id.not_in(fuera)))
+            .order_by(Articulo.publicado_en.desc())
+            .limit(cuantos - len(otros))
+        ).all()
     return [_tarjeta(o, almacen) for o in otros]
 
 
@@ -335,8 +354,16 @@ def ver_publico(db: Session, almacen: Almacen, slug: str) -> ArticuloPublico:
     a = db.scalar(_con_relaciones(select(Articulo).where(Articulo.slug == slug, visible())))
     if a is None:
         raise ErrorNegocio(status.HTTP_404_NOT_FOUND, "Artículo no encontrado.")
+    publicados_del_autor = db.scalar(
+        select(func.count()).select_from(Articulo).where(Articulo.autor_id == a.autor_id, visible())
+    )
     return ArticuloPublico(
         **_tarjeta(a, almacen).model_dump(),
+        vistas=db.scalar(select(func.count()).select_from(Visita).where(Visita.articulo_id == a.id)) or 0,
+        sobre_autor=AutorFicha(
+            nombre=a.autor.nombre, username=a.autor.username, biografia=a.autor.biografia,
+            articulos=publicados_del_autor or 0,
+        ),  # fmt: skip
         contenido_html=a.contenido_html,
         etiquetas=[Corto(nombre=e.nombre, slug=e.slug) for e in a.etiquetas],
         actualizado_en=a.actualizado_en,
@@ -365,4 +392,29 @@ def mapa_del_sitio(db: Session) -> list[tuple[str, datetime]]:
         for slug, fecha in db.execute(
             select(Articulo.slug, Articulo.actualizado_en).where(visible()).order_by(Articulo.publicado_en.desc())
         ).all()
+    ]
+
+
+def mas_leidos(db: Session, almacen: Almacen, limite: int) -> list[MasLeido]:
+    """Los más vistos de los últimos 30 días; si faltan (blog nuevo), se completa con los más recientes."""
+    vistas = func.count(Visita.id)
+    filas = db.execute(
+        select(Articulo, vistas)
+        .join(Visita, (Visita.articulo_id == Articulo.id) & (Visita.creado_en >= ahora() - timedelta(days=30)))
+        .where(visible())
+        .group_by(Articulo.id)
+        .order_by(vistas.desc(), Articulo.publicado_en.desc())
+        .limit(limite)
+    ).all()
+    lista = [(a, n) for a, n in filas]
+    if len(lista) < limite:
+        ya = [a.id for a, _ in lista]
+        recientes = db.scalars(
+            select(Articulo).where(visible(), Articulo.id.not_in(ya)).order_by(Articulo.publicado_en.desc())
+            .limit(limite - len(lista))
+        ).all()  # fmt: skip
+        lista += [(a, 0) for a in recientes]
+    return [
+        MasLeido(titulo=a.titulo, slug=a.slug, imagen=almacen.url(a.imagen_clave) if a.imagen_clave else None, vistas=n)
+        for a, n in lista
     ]

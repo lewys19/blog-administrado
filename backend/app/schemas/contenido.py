@@ -146,7 +146,25 @@ class PaginaArticulos(BaseModel):
     articulos: list[ArticuloTarjeta]
 
 
+class AutorFicha(BaseModel):
+    """La caja "Sobre el autor" al lado del artículo."""
+
+    nombre: str
+    username: str
+    biografia: str | None
+    articulos: int  # publicados
+
+
+class MasLeido(BaseModel):
+    titulo: str
+    slug: str
+    imagen: str | None
+    vistas: int  # en los últimos 30 días
+
+
 class ArticuloPublico(ArticuloTarjeta):
+    vistas: int  # todas las visitas que tuvo
+    sobre_autor: AutorFicha
     contenido_html: str
     etiquetas: list[Corto]
     actualizado_en: datetime

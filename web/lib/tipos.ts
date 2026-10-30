@@ -186,7 +186,23 @@ export interface PaginaArticulos {
   articulos: ArticuloTarjeta[];
 }
 
+export interface AutorFicha {
+  nombre: string;
+  username: string;
+  biografia: string | null;
+  articulos: number;
+}
+
+export interface MasLeido {
+  titulo: string;
+  slug: string;
+  imagen: string | null;
+  vistas: number;
+}
+
 export interface ArticuloPublico extends ArticuloTarjeta {
+  vistas: number;
+  sobre_autor: AutorFicha;
   contenido_html: string;
   etiquetas: Corto[];
   actualizado_en: string;

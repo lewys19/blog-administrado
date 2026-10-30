@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { IconoCategoria } from "@/components/blog/Iconos";
+import { Migas } from "@/components/blog/Lateral";
 import { Grilla } from "@/components/Tarjetas";
 import { obtener } from "@/lib/servidor";
 import type { Categoria, PaginaArticulos } from "@/lib/tipos";
@@ -24,9 +26,14 @@ export default async function PaginaCategoria({ params }: Props) {
   if (!c) notFound();
   const pagina = await obtener<PaginaArticulos>(`/blog/articulos?categoria=${encodeURIComponent(slug)}&por_pagina=30`);
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
-      <p className="font-mono text-xs font-semibold tracking-widest text-marca-fuerte uppercase">Categoría</p>
-      <h1 className="mt-1 text-4xl font-bold tracking-tight">{c.nombre}</h1>
+    <div className="mx-auto w-full max-w-7xl px-4 py-10">
+      <Migas items={[{ texto: "Categorías", href: "/categorias" }, { texto: c.nombre }]} />
+      <div className="mt-5 flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-marca text-white">
+          <IconoCategoria slug={c.slug} className="h-6 w-6" />
+        </span>
+        <h1 className="text-4xl font-bold tracking-tight">{c.nombre}</h1>
+      </div>
       {c.descripcion && <p className="mt-2 max-w-2xl text-lg text-texto-2">{c.descripcion}</p>}
       <div className="mt-8">
         <Grilla articulos={pagina?.articulos ?? []} vacio={`Todavía no hay artículos de ${c.nombre}.`} />

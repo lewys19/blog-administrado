@@ -116,3 +116,18 @@ def test_panel_estadisticas(client: TestClient, registrar: Callable[..., dict], 
     r = client.get(f"{API}/panel/resumen", headers=h_ed).json()["visitas"]
     assert (r["hoy"], r["mes"], r["segundos_promedio_mes"], len(r["por_mes"])) == (3, 3, 120, 12)
     assert client.get(f"{API}/panel/estadisticas?periodo=5a", headers=h_ed).status_code == 422
+
+
+def test_vistas_y_mas_leidos(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h_ed = dar_rol(db, registrar("ed@example.com", "Eduardo"), EDITOR)
+    uno = client.post(f"{API}/panel/articulos", json=articulo(estado="publicado"), headers=h_ed).json()
+    dos = client.post(f"{API}/panel/articulos", json=articulo(titulo="Otro tema", estado="publicado"), headers=h_ed).json()
+    for navegador in (CHROME, IPHONE):
+        visitar(client, f"/blog/{dos['slug']}", navegador)
+
+    publico = client.get(f"{API}/blog/articulos/{dos['slug']}").json()
+    assert publico["vistas"] == 2
+    assert publico["sobre_autor"] == {"nombre": "Eduardo", "username": "eduardo", "biografia": None, "articulos": 2}
+    # El más visto primero; el resto se completa con los recientes (sin vistas).
+    leidos = client.get(f"{API}/blog/mas-leidos?limite=5").json()
+    assert [(m["slug"], m["vistas"]) for m in leidos] == [(dos["slug"], 2), (uno["slug"], 0)]
