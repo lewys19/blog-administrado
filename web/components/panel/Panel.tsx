@@ -23,7 +23,8 @@ export function usePanel(): Yo {
 }
 
 export function puede(yo: Yo, permiso: string | undefined): boolean {
-  return !permiso || yo.permisos.includes(permiso);
+  // "a|b": basta con uno de los dos.
+  return !permiso || permiso.split("|").some((p) => yo.permisos.includes(p));
 }
 
 function Icono({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
@@ -37,12 +38,19 @@ function Icono({ d, className = "h-5 w-5" }: { d: string; className?: string }) 
 async function salir() {
   const actual = leerSesion();
   if (actual) {
-    await pedir("/auth/salir", { metodo: "POST", cuerpo: { token_refresco: actual.token_refresco } }).catch(() => {});
+    await pedir("/auth/salir", {
+      metodo: "POST",
+      cuerpo: { token_refresco: actual.token_refresco },
+    }).catch(() => {});
   }
   guardarSesion(null);
 }
 
 function FormIngreso() {
+  // Con ?crear=1 (botón «Escribe una guía» del blog) se abre directo en «Crear cuenta».
+  const [creando, setCreando] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("crear"),
+  );
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
@@ -53,9 +61,16 @@ function FormIngreso() {
     setCargando(true);
     try {
       guardarSesion(
-        await pedir<Sesion>("/auth/login", {
+        await pedir<Sesion>(creando ? "/auth/registro" : "/auth/login", {
           metodo: "POST",
-          cuerpo: { email: datos.get("email"), contrasena: datos.get("contrasena") },
+          cuerpo: creando
+            ? {
+                nombre: datos.get("nombre"),
+                email: datos.get("email"),
+                contrasena: datos.get("contrasena"),
+                acepta_terminos: datos.get("acepta") === "on",
+              }
+            : { email: datos.get("email"), contrasena: datos.get("contrasena") },
         }),
       );
     } catch (err) {
@@ -68,14 +83,40 @@ function FormIngreso() {
     "w-full rounded-lg border border-borde bg-superficie px-3.5 py-2.5 outline-none focus:border-marca focus:ring-2 focus:ring-marca/25";
   return (
     <form onSubmit={enviar} className="space-y-4">
+      {creando && (
+        <>
+          <p className="rounded-lg bg-marca/10 px-3 py-2 text-sm">
+            Crea tu cuenta gratis y publica tus guías: cómo instalar, configurar y levantar proyectos.
+          </p>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-texto-2">Tu nombre</span>
+            <input name="nombre" autoComplete="name" required minLength={2} maxLength={80} autoFocus className={campo} />
+          </label>
+        </>
+      )}
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-texto-2">Correo</span>
-        <input name="email" type="email" autoComplete="username" required autoFocus className={campo} />
+        <input name="email" type="email" autoComplete="username" required autoFocus={!creando} className={campo} />
       </label>
       <label className="block">
-        <span className="mb-1.5 block text-sm font-medium text-texto-2">Contraseña</span>
-        <input name="contrasena" type="password" autoComplete="current-password" required className={campo} />
+        <span className="mb-1.5 block text-sm font-medium text-texto-2">
+          Contraseña{creando && " (mínimo 8 caracteres)"}
+        </span>
+        <input
+          name="contrasena"
+          type="password"
+          autoComplete={creando ? "new-password" : "current-password"}
+          required
+          minLength={creando ? 8 : undefined}
+          className={campo}
+        />
       </label>
+      {creando && (
+        <label className="flex items-start gap-2 text-sm">
+          <input name="acepta" type="checkbox" required className="mt-1 accent-[var(--marca)]" />
+          <span>Acepto los términos de uso y el tratamiento de mis datos personales.</span>
+        </label>
+      )}
       {error && (
         <p role="alert" className="rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
           {error}
@@ -86,8 +127,21 @@ function FormIngreso() {
         disabled={cargando}
         className="w-full rounded-lg bg-lateral px-4 py-2.5 font-semibold text-white hover:bg-lateral-activo disabled:opacity-60"
       >
-        {cargando ? "Un momento…" : "Ingresar"}
+        {cargando ? "Un momento…" : creando ? "Crear cuenta" : "Ingresar"}
       </button>
+      <p className="text-center text-sm text-texto-2">
+        {creando ? "¿Ya tienes cuenta? " : "¿No tienes cuenta? "}
+        <button
+          type="button"
+          onClick={() => {
+            setCreando(!creando);
+            setError(null);
+          }}
+          className="font-semibold text-marca hover:underline"
+        >
+          {creando ? "Ingresar" : "Crear cuenta gratis"}
+        </button>
+      </p>
     </form>
   );
 }
@@ -133,7 +187,10 @@ function Opcion({ s, activa, alElegir }: { s: Seccion; activa: boolean; alElegir
 
 function BarraLateral({ yo, abierta, alCerrar }: { yo: Yo; abierta: boolean; alCerrar: () => void }) {
   const ruta = usePathname();
-  const visibles = SECCIONES.filter((s) => puede(yo, s.permiso));
+  const soloGuias = !puede(yo, "articulos.escribir");
+  const visibles = SECCIONES.filter((s) => puede(yo, s.permiso)).map((s) =>
+    soloGuias && s.textoSoloGuias ? { ...s, texto: s.textoSoloGuias } : s,
+  );
   const grupos = [null, "Contenido", "Comunidad", "Ingresos", "Herramientas"] as const;
   const activa = (s: Seccion) => (s.ruta ? ruta.startsWith(`/admin/${s.ruta}`) : ruta === "/admin");
   const cerrarEnCelular = () => window.innerWidth < 1024 && alCerrar();

@@ -70,7 +70,14 @@ def requiere_permiso(permiso: str) -> Callable[[Usuario], Usuario]:
 VerUsuarios = Annotated[Usuario, Depends(requiere_permiso("usuarios.ver"))]
 EditarUsuarios = Annotated[Usuario, Depends(requiere_permiso("usuarios.editar"))]
 GestionarRoles = Annotated[Usuario, Depends(requiere_permiso("roles.gestionar"))]
-EscribirArticulos = Annotated[Usuario, Depends(requiere_permiso("articulos.escribir"))]
+def escribe_contenido(usuario: UsuarioActual) -> Usuario:
+    """Quien escribe artículos o, al menos, guías (los Colaboradores)."""
+    if not (usuario.puede("articulos.escribir") or usuario.puede("guias.escribir")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "No tienes permiso para esta acción.")
+    return usuario
+
+
+EscribirArticulos = Annotated[Usuario, Depends(escribe_contenido)]
 GestionarCategorias = Annotated[Usuario, Depends(requiere_permiso("categorias.gestionar"))]
 VerEstadisticas = Annotated[Usuario, Depends(requiere_permiso("estadisticas.ver"))]
 ModerarComentarios = Annotated[Usuario, Depends(requiere_permiso("comentarios.moderar"))]

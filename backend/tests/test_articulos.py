@@ -156,3 +156,22 @@ def test_guias_separadas_de_noticias(client: TestClient, db: Session, registrar)
     assert [a["titulo"] for a in noticias["articulos"]] == ["Novedades de Python 3.15"]
     assert client.get("/api/v1/blog/articulos").json()["total"] == 3  # sin filtro: todo
     assert {e["tipo"] for e in client.get("/api/v1/blog/mapa").json()} == {"guia", "noticia"}
+
+
+def test_colaborador_publica_sus_guias(client: TestClient, registrar) -> None:  # noqa: ANN001
+    sesion = registrar()  # registrarse da el rol Colaborador
+    cab = {"Authorization": f"Bearer {sesion['token_acceso']}"}
+    guia = {"titulo": "Levantar Django en Docker", "contenido": "Paso 1", "tipo": "guia", "estado": "publicado"}
+
+    r = client.post(f"{PANEL}/articulos", json=guia, headers=cab)
+    assert r.status_code == 201, r.text  # se publica sola
+    assert client.get(f"{BLOG}/articulos?tipo=guia").json()["total"] == 1
+
+    # La puede corregir aunque ya esté publicada.
+    r2 = client.put(f"{PANEL}/articulos/{r.json()['id']}", json={**guia, "contenido": "Paso 1 y 2"}, headers=cab)
+    assert r2.status_code == 200, r2.text
+
+    # Pero no escribe artículos del blog ni destaca.
+    blog = {**guia, "tipo": "noticia", "titulo": "Opinión sobre IA"}
+    assert client.post(f"{PANEL}/articulos", json=blog, headers=cab).status_code == 403
+    assert client.post(f"{PANEL}/articulos", json={**guia, "destacado": True}, headers=cab).status_code == 403

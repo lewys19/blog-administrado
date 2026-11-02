@@ -54,12 +54,23 @@ function Campo({ etiqueta, ayuda, children }: { etiqueta: string; ayuda?: ReactN
 }
 
 // Botones de formato: envuelven la selección del texto con la sintaxis de Markdown.
-const FORMATOS: { titulo: string; icono: string; antes: string; despues?: string; linea?: boolean }[] = [
+const FORMATOS: {
+  titulo: string;
+  icono: string;
+  antes: string;
+  despues?: string;
+  linea?: boolean;
+}[] = [
   { titulo: "Subtítulo", icono: "H2", antes: "## ", linea: true },
   { titulo: "Negrita", icono: "B", antes: "**", despues: "**" },
   { titulo: "Cursiva", icono: "I", antes: "_", despues: "_" },
   { titulo: "Código en línea", icono: "`", antes: "`", despues: "`" },
-  { titulo: "Bloque de código", icono: "{ }", antes: "\n```python\n", despues: "\n```\n" },
+  {
+    titulo: "Bloque de código",
+    icono: "{ }",
+    antes: "\n```python\n",
+    despues: "\n```\n",
+  },
   { titulo: "Enlace", icono: "🔗", antes: "[", despues: "](https://)" },
   { titulo: "Lista", icono: "•", antes: "- ", linea: true },
   { titulo: "Cita", icono: "❝", antes: "> ", linea: true },
@@ -68,13 +79,15 @@ const FORMATOS: { titulo: string; icono: string; antes: string; despues?: string
 export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) {
   const yo = usePanel();
   const publica = puede(yo, "articulos.publicar");
+  // Colaborador: solo guías, y las publica al instante.
+  const soloGuias = !puede(yo, "articulos.escribir") && puede(yo, "guias.escribir");
   const area = useRef<HTMLTextAreaElement>(null);
 
   const [a, setA] = useState<ArticuloEditor | null>(inicial);
   const [titulo, setTitulo] = useState(inicial?.titulo ?? "");
   const [slugPropio, setSlugPropio] = useState(inicial?.slug ?? "");
   const [slugEditado, setSlugEditado] = useState(!!inicial);
-  const [tipo, setTipo] = useState<TipoArticulo>(inicial?.tipo ?? "noticia");
+  const [tipo, setTipo] = useState<TipoArticulo>(inicial?.tipo ?? (soloGuias ? "guia" : "noticia"));
   const [resumen, setResumen] = useState(inicial?.resumen ?? "");
   const [contenido, setContenido] = useState(inicial?.contenido ?? "");
   const [categoriaId, setCategoriaId] = useState(inicial?.categoria_id ? String(inicial.categoria_id) : "");
@@ -87,7 +100,10 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   const [metaDescripcion, setMetaDescripcion] = useState(inicial?.meta_descripcion ?? "");
   const [palabras, setPalabras] = useState(inicial?.palabras_clave ?? "");
   const [pestana, setPestana] = useState<"escribir" | "ver">("escribir");
-  const [previa, setPrevia] = useState<{ html: string; minutos_lectura: number } | null>(null);
+  const [previa, setPrevia] = useState<{
+    html: string;
+    minutos_lectura: number;
+  } | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [temas, setTemas] = useState<Categoria[]>([]);
   const [temaId, setTemaId] = useState("");
@@ -116,10 +132,17 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     setPrevia(null);
     try {
       setPrevia(
-        await pedir("/panel/articulos/vista-previa", { metodo: "POST", conSesion: true, cuerpo: { contenido } }),
+        await pedir("/panel/articulos/vista-previa", {
+          metodo: "POST",
+          conSesion: true,
+          cuerpo: { contenido },
+        }),
       );
     } catch {
-      setPrevia({ html: "<p>No se pudo generar la vista previa.</p>", minutos_lectura: 0 });
+      setPrevia({
+        html: "<p>No se pudo generar la vista previa.</p>",
+        minutos_lectura: 0,
+      });
     }
   }
 
@@ -199,7 +222,13 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     cuerpo.append("foto", archivo);
     setError(null);
     try {
-      setA(await pedir<ArticuloEditor>(`/panel/articulos/${a.id}/imagen`, { metodo: "PUT", conSesion: true, cuerpo }));
+      setA(
+        await pedir<ArticuloEditor>(`/panel/articulos/${a.id}/imagen`, {
+          metodo: "PUT",
+          conSesion: true,
+          cuerpo,
+        }),
+      );
       setOk("Portada guardada.");
     } catch (err) {
       setError(err instanceof ErrorApi ? err.message : "No se pudo subir la imagen.");
@@ -390,6 +419,15 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
                   Destacado en la portada
                 </label>
               </>
+            ) : tipo === "guia" && puede(yo, "guias.escribir") ? (
+              <button
+                type="button"
+                disabled={guardando}
+                onClick={() => guardar("publicado")}
+                className="rounded-lg bg-marca px-3 py-2 text-sm font-semibold text-sobre-marca hover:bg-marca-fuerte disabled:opacity-60"
+              >
+                {estadoActual === "publicado" ? "Guardar cambios publicados" : "Publicar guía"}
+              </button>
             ) : (
               <button
                 type="button"
@@ -414,28 +452,22 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
 
         <Caja className="space-y-3 p-4">
           <h2 className="font-bold">Clasificación</h2>
-          <Campo
-            etiqueta="Tipo"
-            ayuda={tipo === "guia" ? "Tutorial paso a paso: sale en /guias" : "Sale en /blog"}
-          >
-            <select
-              id="articulo-tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value as TipoArticulo)}
-              className={ENTRADA}
-            >
-              <option value="noticia">Artículo del blog</option>
-              <option value="guia">Guía (tutorial)</option>
-            </select>
-          </Campo>
-          {tipo === "guia" && (
-            <Campo etiqueta="Tema de la guía" ayuda="Va en la dirección: /guias/tema/nombre-de-la-guia">
+          {!soloGuias && (
+            <Campo etiqueta="Tipo" ayuda={tipo === "guia" ? "Tutorial paso a paso: sale en /guias" : "Sale en /blog"}>
               <select
-                id="articulo-tema"
-                value={temaId}
-                onChange={(e) => setTemaId(e.target.value)}
+                id="articulo-tipo"
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value as TipoArticulo)}
                 className={ENTRADA}
               >
+                <option value="noticia">Artículo del blog</option>
+                <option value="guia">Guía (tutorial)</option>
+              </select>
+            </Campo>
+          )}
+          {tipo === "guia" && (
+            <Campo etiqueta="Tema de la guía" ayuda="Va en la dirección: /guias/tema/nombre-de-la-guia">
+              <select id="articulo-tema" value={temaId} onChange={(e) => setTemaId(e.target.value)} className={ENTRADA}>
                 <option value="">Elige un tema (si no, «Otros»)</option>
                 {temas.map((t) => (
                   <option key={t.id} value={t.id}>

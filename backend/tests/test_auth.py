@@ -9,9 +9,9 @@ API = "/api/v1"
 
 def test_registro_ingreso_y_perfil(client: TestClient, registrar: Callable[..., dict]) -> None:
     sesion = registrar(nombre="Lewys Ramos")
-    assert sesion["usuario"]["username"] == "lewys-ramos" and sesion["usuario"]["en_panel"] is False
+    assert sesion["usuario"]["username"] == "lewys-ramos" and sesion["usuario"]["en_panel"] is True  # Colaborador
     yo = client.get(f"{API}/yo", headers=cabeceras(sesion)).json()
-    assert (yo["rol"], yo["permisos"]) == (None, [])
+    assert (yo["rol"], yo["permisos"]) == ("Colaborador", ["guias.escribir"])
     r = client.post(f"{API}/auth/login", json={"email": "ANA@example.com", "contrasena": "clave-segura-1"})
     assert r.status_code == 200
     assert client.post(f"{API}/auth/registro", json={

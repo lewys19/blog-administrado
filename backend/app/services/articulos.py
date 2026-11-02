@@ -4,6 +4,7 @@ Reglas del flujo editorial:
 - `articulos.escribir`: crea y edita SUS artículos mientras son borrador o están en revisión.
 - `articulos.publicar`: publica, programa, despublica y marca destacados.
 - `articulos.editar_todos`: edita los de cualquier autor.
+- `guias.escribir` (Colaborador): escribe SUS guías y las publica al instante; no escribe artículos del blog.
 Un artículo «programado» se ve en el blog desde su fecha, sin ningún proceso aparte.
 """
 
@@ -122,7 +123,11 @@ def _descripcion(a: Articulo) -> str:
 def _puede_editar(quien: Usuario, a: Articulo) -> bool:
     if quien.puede("articulos.editar_todos"):
         return True
-    if a.autor_id != quien.id or not quien.puede("articulos.escribir"):
+    if a.autor_id != quien.id:
+        return False
+    if a.tipo == TipoArticulo.GUIA and quien.puede("guias.escribir"):
+        return True  # sus guías: siempre (se publican solas)
+    if not quien.puede("articulos.escribir"):
         return False
     # Ya publicado (o programado), solo lo toca quien puede publicar.
     return a.estado in (EstadoArticulo.BORRADOR, EstadoArticulo.REVISION) or quien.puede("articulos.publicar")
@@ -191,10 +196,24 @@ def _etiquetas(db: Session, nombres: list[str]) -> list[Etiqueta]:
     return salida
 
 
+def _solo_guias(quien: Usuario) -> bool:
+    return not quien.puede("articulos.escribir") and quien.puede("guias.escribir")
+
+
+def _publica_guias(quien: Usuario) -> bool:
+    """Las guías se publican solas: quien puede escribirlas, puede publicarlas."""
+    return quien.puede("guias.escribir") or quien.puede("articulos.publicar")
+
+
 def _validar_estado(quien: Usuario, a: Articulo, datos: ArticuloIn) -> None:
+    if _solo_guias(quien) and datos.tipo != TipoArticulo.GUIA:
+        raise ErrorNegocio(status.HTTP_403_FORBIDDEN, "Tu cuenta solo puede escribir guías.")
     publica = datos.estado in (EstadoArticulo.PUBLICADO, EstadoArticulo.PROGRAMADO)
     cambia_publicacion = publica or a.estado in (EstadoArticulo.PUBLICADO, EstadoArticulo.PROGRAMADO)
-    if (cambia_publicacion or datos.destacado != a.destacado) and not quien.puede("articulos.publicar"):
+    es_guia = datos.tipo == TipoArticulo.GUIA and a.tipo in (TipoArticulo.GUIA, None)
+    if datos.destacado != a.destacado and not quien.puede("articulos.publicar"):
+        raise ErrorNegocio(status.HTTP_403_FORBIDDEN, "Tu rol no puede destacar artículos.")
+    if cambia_publicacion and not (quien.puede("articulos.publicar") or (es_guia and _publica_guias(quien))):
         raise ErrorNegocio(
             status.HTTP_403_FORBIDDEN, "Tu rol no puede publicar: guárdalo como borrador o envíalo a revisión."
         )

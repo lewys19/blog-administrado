@@ -57,8 +57,8 @@ def engine() -> Generator[Engine, None, None]:
 def session_factory(engine: Engine) -> sessionmaker[Session]:
     with engine.begin() as conexion:
         conexion.execute(text(f"TRUNCATE {TABLAS_DE_DATOS} RESTART IDENTITY CASCADE"))
-        # Los 4 roles de la migración se conservan; los creados en una prueba, no.
-        conexion.execute(text("DELETE FROM roles WHERE id > 4"))
+        # Los roles de las migraciones (los 4 iniciales y Colaborador) se conservan; los creados en una prueba, no.
+        conexion.execute(text("DELETE FROM roles WHERE id > 4 AND nombre <> 'Colaborador'"))
         conexion.execute(text("DELETE FROM categorias WHERE id > 6"))  # las 6 de la migración 0002 se quedan
     # Los intentos de ingreso viven en Redis: cada prueba empieza sin bloqueos.
     cliente = redis.Redis.from_url(settings.REDIS_URL)

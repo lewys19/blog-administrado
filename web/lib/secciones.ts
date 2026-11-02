@@ -6,7 +6,9 @@ export interface Seccion {
   texto: string;
   grupo: "Contenido" | "Comunidad" | "Ingresos" | "Herramientas" | null;
   icono: string; // trazo SVG 24×24
-  permiso?: string;
+  permiso?: string; // "a|b": basta con uno
+  /** Texto para quien solo escribe guías (Colaborador). */
+  textoSoloGuias?: string;
   /** Sprint en el que llega; sin número = ya funciona. */
   sprint?: number;
   descripcion: string;
@@ -25,7 +27,8 @@ export const SECCIONES: Seccion[] = [
     texto: "Artículos",
     grupo: "Contenido",
     icono: "M6 2h9l5 5v15H6zm8 1.5V8h4.5M9 12h8M9 16h8",
-    permiso: "articulos.escribir",
+    permiso: "articulos.escribir|guias.escribir",
+    textoSoloGuias: "Mis guías",
     descripcion:
       "Escribir, revisar y publicar artículos: título, contenido, imagen, slug, categoría, etiquetas, estado y autor.",
   },

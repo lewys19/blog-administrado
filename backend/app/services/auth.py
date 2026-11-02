@@ -13,6 +13,7 @@ from app.core.cache import cliente_redis
 from app.core.config import settings
 from app.core.errores import ErrorNegocio
 from app.core.fechas import ahora
+from app.core.permisos import COLABORADOR
 from app.core.security import (
     HASH_SEÑUELO,
     crear_token_acceso,
@@ -21,7 +22,7 @@ from app.core.security import (
     nuevo_token_refresco,
     verificar_contrasena,
 )
-from app.models import TokenRefresco, Usuario
+from app.models import Rol, TokenRefresco, Usuario
 from app.schemas.auth import LoginIn, RegistroIn, SesionOut
 from app.schemas.usuario import UsuarioOut
 from app.services.usuarios import username_libre
@@ -58,6 +59,8 @@ def registrar(db: Session, datos: RegistroIn) -> SesionOut:
         nombre=datos.nombre,
         hash_contrasena=hash_contrasena(datos.contrasena),
         acepto_terminos_en=ahora(),
+        # Quien se registra es Colaborador: entra al panel y escribe sus guías.
+        rol_id=db.scalar(select(Rol.id).where(Rol.nombre == COLABORADOR)),
     )
     db.add(usuario)
     try:

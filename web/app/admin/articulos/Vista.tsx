@@ -55,15 +55,19 @@ export function Articulos() {
   }, [estado, q, pagina]);
 
   useEffect(() => {
-    if (puede(yo, "articulos.escribir")) cargar();
+    if (puede(yo, "articulos.escribir|guias.escribir")) cargar();
   }, [yo, cargar]);
 
-  if (!puede(yo, "articulos.escribir")) return <SinPermiso />;
+  if (!puede(yo, "articulos.escribir|guias.escribir")) return <SinPermiso />;
+  const soloGuias = !puede(yo, "articulos.escribir");
 
   async function eliminar(a: ArticuloFila) {
     setPorEliminar(null);
     try {
-      await pedir(`/panel/articulos/${a.id}`, { metodo: "DELETE", conSesion: true });
+      await pedir(`/panel/articulos/${a.id}`, {
+        metodo: "DELETE",
+        conSesion: true,
+      });
       setOk(`Se eliminó «${a.titulo}».`);
       cargar();
     } catch (e) {
@@ -73,17 +77,19 @@ export function Articulos() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <Migas items={[{ texto: "Artículos" }]} />
+      <Migas items={[{ texto: soloGuias ? "Mis guías" : "Artículos" }]} />
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h1 className="flex-1 text-2xl font-bold tracking-tight">Artículos</h1>
+        <h1 className="flex-1 text-2xl font-bold tracking-tight">{soloGuias ? "Mis guías" : "Artículos"}</h1>
         <Link
           href="/admin/articulos/nuevo"
           className="rounded-lg bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo"
         >
-          + Nuevo artículo
+          {soloGuias ? "+ Nueva guía" : "+ Nuevo artículo"}
         </Link>
       </div>
-      {!puede(yo, "articulos.editar_todos") && <p className="mb-3 text-sm text-texto-2">Ves solo tus artículos.</p>}
+      {!puede(yo, "articulos.editar_todos") && !soloGuias && (
+        <p className="mb-3 text-sm text-texto-2">Ves solo tus artículos.</p>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div role="tablist" className="flex flex-wrap rounded-lg border border-borde bg-superficie p-1 text-sm">

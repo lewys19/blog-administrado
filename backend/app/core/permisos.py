@@ -8,6 +8,7 @@ queden armados desde el principio.
 PERMISOS: dict[str, str] = {
     # Contenido
     "articulos.escribir": "Escribir artículos (borradores)",
+    "guias.escribir": "Escribir y publicar sus propias guías",
     "articulos.publicar": "Publicar artículos",
     "articulos.editar_todos": "Editar artículos de otros autores",
     "categorias.gestionar": "Crear y ordenar categorías y etiquetas",
@@ -28,3 +29,4 @@ PERMISOS: dict[str, str] = {
 }
 
 ADMINISTRADOR = 1  # id del rol Administrador (lo crea la migración 0001)
+COLABORADOR = "Colaborador"  # rol que recibe quien se registra (migración 0008): escribe guías

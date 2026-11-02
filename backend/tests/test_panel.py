@@ -8,14 +8,16 @@ from tests.conftest import ADMINISTRADOR, EDITOR, INVITADO, REDACTOR, cabeceras,
 API = "/api/v1/panel"
 
 
-def test_lector_no_entra_al_panel(client: TestClient, registrar: Callable[..., dict]) -> None:
-    assert client.get(f"{API}/resumen", headers=cabeceras(registrar())).status_code == 403
+def test_lector_no_entra_al_panel(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    # Quien se registra es Colaborador; una cuenta sin rol (p. ej. se lo quitaron) no entra.
+    assert client.get(f"{API}/resumen", headers=dar_rol(db, registrar(), None)).status_code == 403
 
 
 def test_los_cuatro_roles_y_sus_permisos(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
     h = dar_rol(db, registrar(), ADMINISTRADOR)
     roles = {r["nombre"]: r for r in client.get(f"{API}/roles", headers=h).json()}
-    assert list(roles) == ["Administrador", "Editor", "Redactor", "Invitado"]
+    assert list(roles) == ["Administrador", "Editor", "Redactor", "Invitado", "Colaborador"]
+    assert roles["Colaborador"]["permisos"] == ["guias.escribir"]
     assert roles["Administrador"]["fijo"] and "configuracion.gestionar" in roles["Administrador"]["permisos"]
     assert "articulos.publicar" in roles["Editor"]["permisos"]
     assert "articulos.publicar" not in roles["Redactor"]["permisos"]
