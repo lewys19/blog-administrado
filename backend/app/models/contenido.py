@@ -22,6 +22,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
 
+class TipoArticulo(StrEnum):
+    NOTICIA = "noticia"  # actualidad: va en /blog
+    GUIA = "guia"  # tutorial paso a paso: va en /guias
+
+
 class EstadoArticulo(StrEnum):
     BORRADOR = "borrador"
     REVISION = "revision"  # el autor lo envió; un Editor lo publica
@@ -39,6 +44,17 @@ class Categoria(Base):
     slug: Mapped[str] = mapped_column(String(70), unique=True)
     descripcion: Mapped[str | None] = mapped_column(String(300))
     padre_id: Mapped[int | None] = mapped_column(ForeignKey("categorias.id", ondelete="RESTRICT"))
+    orden: Mapped[int] = mapped_column(SmallInteger, default=0)
+
+
+class TemaGuia(Base):
+    """Tema de una guía: Python, Backend, Django, Otros. Va en la URL: /guias/<tema>/<guía>."""
+
+    __tablename__ = "temas_guia"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(60))
+    slug: Mapped[str] = mapped_column(String(70), unique=True)
     orden: Mapped[int] = mapped_column(SmallInteger, default=0)
 
 
@@ -70,12 +86,15 @@ class Articulo(Base):
     titulo: Mapped[str] = mapped_column(String(160))
     # URL amigable (/blog/<slug>). Se genera del título; se puede editar.
     slug: Mapped[str] = mapped_column(String(180), unique=True)
+    tipo: Mapped[str] = mapped_column(String(10), default=TipoArticulo.NOTICIA, server_default="noticia", index=True)
     resumen: Mapped[str | None] = mapped_column(String(400))  # bajada bajo el título y en las tarjetas
     contenido: Mapped[str] = mapped_column(Text, default="")  # Markdown, como lo escribe el autor
     # HTML listo para mostrar: se genera al guardar (código resaltado y limpio de scripts).
     contenido_html: Mapped[str] = mapped_column(Text, default="")
     imagen_clave: Mapped[str | None] = mapped_column(String(200))
     categoria_id: Mapped[int | None] = mapped_column(ForeignKey("categorias.id", ondelete="RESTRICT"), index=True)
+    # Solo las guías: el tema decide su dirección (/guias/<tema>/<slug>).
+    tema_id: Mapped[int | None] = mapped_column(ForeignKey("temas_guia.id", ondelete="RESTRICT"), index=True)
     autor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="RESTRICT"), index=True)
     estado: Mapped[EstadoArticulo] = mapped_column(
         Enum(EstadoArticulo, name="estado_articulo", values_callable=lambda e: [m.value for m in e]),
@@ -104,5 +123,6 @@ class Articulo(Base):
     )
 
     categoria: Mapped[Categoria | None] = relationship()
+    tema: Mapped[TemaGuia | None] = relationship()
     autor: Mapped["Usuario"] = relationship()  # noqa: F821
     etiquetas: Mapped[list[Etiqueta]] = relationship(secondary=articulo_etiqueta, order_by=Etiqueta.nombre)

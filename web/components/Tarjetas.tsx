@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { fechaCorta, fechaLarga } from "@/lib/formato";
 import type { ArticuloTarjeta } from "@/lib/tipos";
+import { rutaArticulo } from "@/lib/rutas";
 
 function Portada({ a, clase }: { a: ArticuloTarjeta; clase: string }) {
   return a.imagen ? (
@@ -62,7 +63,7 @@ export function Tarjeta({ a, compacta = false }: { a: ArticuloTarjeta; compacta?
         <EtiquetaCategoria a={a} />
         <h3 className={`leading-snug font-bold text-balance ${compacta ? "line-clamp-3 text-sm" : "text-lg"}`}>
           {/* Toda la tarjeta es el enlace al artículo. */}
-          <Link href={`/blog/${a.slug}`} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
+          <Link href={rutaArticulo(a)} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
             {a.titulo}
           </Link>
         </h3>
@@ -95,7 +96,7 @@ export function Destacado({ a }: { a: ArticuloTarjeta }) {
           <EtiquetaCategoria a={a} />
         </div>
         <h2 className="text-3xl leading-tight font-bold tracking-tight text-balance">
-          <Link href={`/blog/${a.slug}`} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
+          <Link href={rutaArticulo(a)} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
             {a.titulo}
           </Link>
         </h2>

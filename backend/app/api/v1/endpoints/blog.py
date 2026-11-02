@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from app.almacen import Almacen, obtener_almacen
 from app.api.deps import Db
+from app.models import TipoArticulo
 from app.schemas.contenido import (
     ArticuloPublico,
     AutorConArticulos,
@@ -26,6 +27,8 @@ Slug = Annotated[str | None, Query(max_length=80)]
 
 class EntradaMapa(BaseModel):
     slug: str
+    tipo: str
+    tema: str | None
     actualizado_en: datetime
 
 
@@ -39,8 +42,10 @@ def listar(
     etiqueta: Slug = None,
     autor: Slug = None,
     q: Annotated[str | None, Query(max_length=100, description="Búsqueda en español")] = None,
+    tipo: Annotated[TipoArticulo | None, Query(description="noticia (/blog) o guia (/guias)")] = None,
+    tema: Slug = None,
 ) -> PaginaArticulos:
-    return articulos.listar_publicos(db, almacen, pagina, por_pagina, categoria, etiqueta, autor, q)
+    return articulos.listar_publicos(db, almacen, pagina, por_pagina, categoria, etiqueta, autor, q, tipo, tema)
 
 
 @router.get("/articulos/{slug}", response_model=ArticuloPublico)
@@ -78,4 +83,10 @@ def autor(username: str, db: Db, almacen: AlmacenDep) -> AutorConArticulos:
 @router.get("/mapa", response_model=list[EntradaMapa])
 def mapa(db: Db) -> list[EntradaMapa]:
     """Todo lo publicado, para el sitemap.xml de la web."""
-    return [EntradaMapa(slug=s, actualizado_en=f) for s, f in articulos.mapa_del_sitio(db)]
+    return [EntradaMapa(slug=s, tipo=t, tema=m, actualizado_en=f) for s, t, m, f in articulos.mapa_del_sitio(db)]
+
+
+@router.get("/temas-guia", response_model=list[CategoriaOut])
+def temas_guia(db: Db) -> list[CategoriaOut]:
+    """Temas de las guías (Python, Backend, Django, Otros), en su orden."""
+    return articulos.temas_guia(db)

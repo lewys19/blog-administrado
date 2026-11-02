@@ -136,10 +136,14 @@ export interface Etiqueta {
   articulos: number;
 }
 
+export type TipoArticulo = "noticia" | "guia";
+
 export interface ArticuloFila {
   id: number;
   titulo: string;
   slug: string;
+  tipo: TipoArticulo;
+  tema: { nombre: string; slug: string } | null; // solo guías
   estado: EstadoArticulo;
   destacado: boolean;
   categoria: Corto | null;
@@ -171,6 +175,8 @@ export interface ArticuloEditor extends ArticuloFila {
 export interface ArticuloTarjeta {
   titulo: string;
   slug: string;
+  tipo: TipoArticulo;
+  tema: { nombre: string; slug: string } | null; // solo guías
   resumen: string | null;
   imagen: string | null;
   categoria: Corto | null;
@@ -197,6 +203,8 @@ export interface AutorFicha {
 export interface MasLeido {
   titulo: string;
   slug: string;
+  tipo: TipoArticulo;
+  tema: { nombre: string; slug: string } | null; // solo guías
   imagen: string | null;
   vistas: number;
 }

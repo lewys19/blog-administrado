@@ -156,8 +156,9 @@ def registrar(
         return VisitaOut(id=None)
 
     articulo_id = None
-    if ruta.startswith("/blog/"):
-        slug = ruta.removeprefix("/blog/").strip("/").split("/")[0]
+    prefijo = next((p for p in ("/blog/", "/guias/") if ruta.startswith(p)), None)
+    if prefijo:
+        slug = ruta.removeprefix(prefijo).strip("/").split("/")[0]
         articulo_id = db.scalar(select(Articulo.id).where(Articulo.slug == slug, articulos.visible()))
 
     referente = _referente(datos.referente)

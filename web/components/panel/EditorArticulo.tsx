@@ -9,7 +9,8 @@ import { puede, usePanel } from "@/components/panel/Panel";
 import { Aviso, Caja } from "@/components/panel/Tabla";
 import { ErrorApi, pedir } from "@/lib/api";
 import { GenerarConIA } from "@/components/panel/GenerarConIA";
-import type { ArticuloEditor, Categoria, EstadoArticulo } from "@/lib/tipos";
+import type { ArticuloEditor, Categoria, EstadoArticulo, TipoArticulo } from "@/lib/tipos";
+import { rutaArticulo } from "@/lib/rutas";
 
 const ENTRADA = "w-full rounded-lg border border-borde bg-superficie px-3 py-2 text-sm outline-none focus:border-marca";
 
@@ -73,6 +74,7 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   const [titulo, setTitulo] = useState(inicial?.titulo ?? "");
   const [slugPropio, setSlugPropio] = useState(inicial?.slug ?? "");
   const [slugEditado, setSlugEditado] = useState(!!inicial);
+  const [tipo, setTipo] = useState<TipoArticulo>(inicial?.tipo ?? "noticia");
   const [resumen, setResumen] = useState(inicial?.resumen ?? "");
   const [contenido, setContenido] = useState(inicial?.contenido ?? "");
   const [categoriaId, setCategoriaId] = useState(inicial?.categoria_id ? String(inicial.categoria_id) : "");
@@ -87,6 +89,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   const [pestana, setPestana] = useState<"escribir" | "ver">("escribir");
   const [previa, setPrevia] = useState<{ html: string; minutos_lectura: number } | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [temas, setTemas] = useState<Categoria[]>([]);
+  const [temaId, setTemaId] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +99,15 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     pedir<Categoria[]>("/panel/categorias", { conSesion: true })
       .then(setCategorias)
       .catch(() => {});
-  }, []);
+    pedir<Categoria[]>("/blog/temas-guia")
+      .then((lista) => {
+        setTemas(lista);
+        // Al editar una guía, se marca su tema; en una nueva, ninguno (irá a «Otros» si no se elige).
+        const actual = lista.find((t) => t.slug === inicial?.tema?.slug);
+        if (actual) setTemaId(String(actual.id));
+      })
+      .catch(() => {});
+  }, [inicial?.tema?.slug]);
 
   const slugFinal = slugEditado ? slug(slugPropio) : slug(titulo);
 
@@ -138,6 +150,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     const cuerpo = {
       titulo,
       slug: slugFinal || null,
+      tipo,
+      tema_id: tipo === "guia" && temaId ? Number(temaId) : null,
       resumen: resumen || null,
       contenido,
       categoria_id: categoriaId ? Number(categoriaId) : null,
@@ -388,7 +402,7 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
             )}
             {a && (estadoActual === "publicado" || estadoActual === "programado") && (
               <Link
-                href={`/blog/${a.slug}`}
+                href={rutaArticulo(a)}
                 target="_blank"
                 className="text-center text-sm text-marca-fuerte hover:underline"
               >
@@ -400,6 +414,37 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
 
         <Caja className="space-y-3 p-4">
           <h2 className="font-bold">Clasificación</h2>
+          <Campo
+            etiqueta="Tipo"
+            ayuda={tipo === "guia" ? "Tutorial paso a paso: sale en /guias" : "Sale en /blog"}
+          >
+            <select
+              id="articulo-tipo"
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as TipoArticulo)}
+              className={ENTRADA}
+            >
+              <option value="noticia">Artículo del blog</option>
+              <option value="guia">Guía (tutorial)</option>
+            </select>
+          </Campo>
+          {tipo === "guia" && (
+            <Campo etiqueta="Tema de la guía" ayuda="Va en la dirección: /guias/tema/nombre-de-la-guia">
+              <select
+                id="articulo-tema"
+                value={temaId}
+                onChange={(e) => setTemaId(e.target.value)}
+                className={ENTRADA}
+              >
+                <option value="">Elige un tema (si no, «Otros»)</option>
+                {temas.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.nombre}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+          )}
           <Campo etiqueta="Categoría">
             <select
               id="articulo-categoria"

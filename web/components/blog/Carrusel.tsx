@@ -7,6 +7,7 @@ import { Avatar } from "@/components/blog/Lateral";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { fechaLarga } from "@/lib/formato";
 import type { ArticuloTarjeta } from "@/lib/tipos";
+import { rutaArticulo } from "@/lib/rutas";
 
 const PAUSA = 7000;
 
@@ -59,7 +60,7 @@ export function Carrusel({ articulos }: { articulos: ArticuloTarjeta[] }) {
               </Link>
             )}
             <h2 className="text-2xl leading-tight font-bold text-balance md:text-4xl">
-              <Link href={`/blog/${a.slug}`} tabIndex={i === actual ? undefined : -1} className="hover:underline">
+              <Link href={rutaArticulo(a)} tabIndex={i === actual ? undefined : -1} className="hover:underline">
                 {a.titulo}
               </Link>
             </h2>

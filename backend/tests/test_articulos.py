@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.almacen import AlmacenLocal, obtener_almacen
 from app.main import app
-from tests.conftest import EDITOR, INVITADO, REDACTOR, dar_rol
+from tests.conftest import ADMINISTRADOR, EDITOR, INVITADO, REDACTOR, dar_rol
 
 PANEL = "/api/v1/panel"
 BLOG = "/api/v1/blog"
@@ -126,3 +126,33 @@ def test_vista_previa(client: TestClient, registrar: Callable[..., dict], db: Se
     h = dar_rol(db, registrar(), REDACTOR)
     r = client.post(f"{PANEL}/articulos/vista-previa", json={"contenido": "# Hola\n\n" + "palabra " * 600}, headers=h).json()
     assert r["html"].startswith('<h2 id="hola">') and r["minutos_lectura"] == 3
+
+
+def test_guias_separadas_de_noticias(client: TestClient, db: Session, registrar) -> None:  # noqa: ANN001
+    cab = dar_rol(db, registrar(), ADMINISTRADOR)
+    base = {"contenido": "Texto", "estado": "publicado"}
+    client.post("/api/v1/panel/articulos", json={**base, "titulo": "Novedades de Python 3.15"}, headers=cab)
+    r = client.post(
+        "/api/v1/panel/articulos", json={**base, "titulo": "Django con Bootstrap paso a paso", "tipo": "guia"}, headers=cab
+    )
+    assert r.status_code == 201, r.text
+    assert r.json()["tipo"] == "guia"
+    assert r.json()["tema"]["slug"] == "otros"  # sin tema elegido va a «Otros»
+
+    temas = {t["slug"]: t["id"] for t in client.get("/api/v1/blog/temas-guia").json()}
+    assert list(temas) == ["python", "backend", "django", "otros"]
+    r = client.post(
+        "/api/v1/panel/articulos",
+        json={**base, "titulo": "Instalar Django con Python", "tipo": "guia", "tema_id": temas["django"]},
+        headers=cab,
+    )
+    assert r.json()["tema"]["slug"] == "django"
+    de_django = client.get("/api/v1/blog/articulos?tema=django").json()
+    assert [a["titulo"] for a in de_django["articulos"]] == ["Instalar Django con Python"]
+
+    guias = client.get("/api/v1/blog/articulos?tipo=guia").json()
+    noticias = client.get("/api/v1/blog/articulos?tipo=noticia").json()
+    assert sorted(a["titulo"] for a in guias["articulos"]) == ["Django con Bootstrap paso a paso", "Instalar Django con Python"]
+    assert [a["titulo"] for a in noticias["articulos"]] == ["Novedades de Python 3.15"]
+    assert client.get("/api/v1/blog/articulos").json()["total"] == 3  # sin filtro: todo
+    assert {e["tipo"] for e in client.get("/api/v1/blog/mapa").json()} == {"guia", "noticia"}

@@ -84,6 +84,9 @@ async function Menu() {
         <li>
           <EnlaceMenu href="/blog">Blog</EnlaceMenu>
         </li>
+        <li>
+          <EnlaceMenu href="/guias">Guías</EnlaceMenu>
+        </li>
         {principales.map((c) => {
           const hijas = categorias.filter((h) => h.padre_id === c.id);
           return (
@@ -164,6 +167,7 @@ export function EncabezadoCargando() {
 const ENLACES_PIE = [
   { texto: "Inicio", href: "/" },
   { texto: "Blog", href: "/blog" },
+  { texto: "Guías", href: "/guias" },
   { texto: "Categorías", href: "/categorias" },
   { texto: "Buscar", href: "/buscar" },
   { texto: "Sobre nosotros", href: "/sobre-nosotros" },

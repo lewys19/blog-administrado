@@ -1,3 +1,4 @@
+import { rutaArticulo } from "@/lib/rutas";
 import { obtener } from "@/lib/servidor";
 import { NOMBRE_SITIO, SITIO_URL } from "@/lib/sitio";
 import type { PaginaArticulos } from "@/lib/tipos";
@@ -13,8 +14,8 @@ export async function GET() {
     .map(
       (a) => `    <item>
       <title>${escapar(a.titulo)}</title>
-      <link>${SITIO_URL}/blog/${a.slug}</link>
-      <guid isPermaLink="true">${SITIO_URL}/blog/${a.slug}</guid>
+      <link>${SITIO_URL}${rutaArticulo(a)}</link>
+      <guid isPermaLink="true">${SITIO_URL}${rutaArticulo(a)}</guid>
       <pubDate>${new Date(a.publicado_en).toUTCString()}</pubDate>
       <author>${escapar(a.autor.nombre)}</author>${a.categoria ? `\n      <category>${escapar(a.categoria.nombre)}</category>` : ""}
       <description>${escapar(a.resumen ?? "")}</description>

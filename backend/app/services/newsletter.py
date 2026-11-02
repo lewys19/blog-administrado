@@ -93,7 +93,7 @@ def _correo_confirmacion(s: Suscriptor) -> Correo:
 
 
 def _correo_articulo(a: Articulo, imagen: str | None, s: Suscriptor) -> Correo:
-    leer = _url(f"/blog/{a.slug}")
+    leer = _url(f"/{'guias' if a.tipo == 'guia' else 'blog'}/{a.slug}")
     baja = _url(f"/newsletter/baja?token={s.token}")
     foto = (
         f'<a href="{escape(leer)}"><img src="{escape(imagen)}" alt="" width="504" '

@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from app.core.slugs import slugificar
-from app.models import EstadoArticulo
+from app.models import EstadoArticulo, TipoArticulo
 
 Texto = Annotated[str, StringConstraints(strip_whitespace=True)]
 
@@ -60,6 +60,8 @@ class ArticuloFila(BaseModel):
     id: int
     titulo: str
     slug: str
+    tipo: TipoArticulo
+    tema: Corto | None  # solo guías
     estado: EstadoArticulo
     destacado: bool
     categoria: Corto | None
@@ -93,6 +95,8 @@ class ArticuloEditor(ArticuloFila):
 class ArticuloIn(BaseModel):
     titulo: Annotated[Texto, Field(min_length=3, max_length=160)]
     slug: Annotated[Texto, Field(max_length=180)] | None = None  # vacío: se arma del título
+    tipo: TipoArticulo = TipoArticulo.NOTICIA
+    tema_id: int | None = None  # guías: si falta, va a «Otros»
     resumen: Annotated[Texto, Field(max_length=400)] | None = None
     contenido: Annotated[str, Field(max_length=200_000)] = ""
     categoria_id: int | None = None
@@ -130,6 +134,8 @@ class AutorPublico(BaseModel):
 class ArticuloTarjeta(BaseModel):
     titulo: str
     slug: str
+    tipo: TipoArticulo
+    tema: Corto | None  # solo guías: arma /guias/<tema>/<slug>
     resumen: str | None
     imagen: str | None
     categoria: Corto | None
@@ -158,6 +164,8 @@ class AutorFicha(BaseModel):
 class MasLeido(BaseModel):
     titulo: str
     slug: str
+    tipo: TipoArticulo
+    tema: Corto | None
     imagen: str | None
     vistas: int  # en los últimos 30 días
 

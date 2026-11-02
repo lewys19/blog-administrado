@@ -32,7 +32,7 @@ export default async function Blog({ searchParams }: PageProps<"/blog">) {
   const categoria = uno(sp.categoria);
   const pagina = Math.max(1, Number.parseInt(uno(sp.pagina), 10) || 1);
 
-  const consulta = new URLSearchParams({ pagina: String(pagina), por_pagina: String(POR_PAGINA) });
+  const consulta = new URLSearchParams({ tipo: "noticia", pagina: String(pagina), por_pagina: String(POR_PAGINA) });
   if (categoria) consulta.set("categoria", categoria);
   const [datos, categorias] = await Promise.all([
     obtener<PaginaArticulos>(`/blog/articulos?${consulta}`),

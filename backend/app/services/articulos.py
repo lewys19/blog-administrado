@@ -27,6 +27,8 @@ from app.models import (
     EstadoArticulo,
     EstadoComentario,
     Etiqueta,
+    TemaGuia,
+    TipoArticulo,
     Usuario,
     Visita,
     articulo_etiqueta,
@@ -37,6 +39,7 @@ from app.schemas.contenido import (
     ArticuloIn,
     ArticuloPublico,
     ArticuloTarjeta,
+    CategoriaOut,
     AutorConArticulos,
     AutorCorto,
     AutorFicha,
@@ -62,20 +65,21 @@ def visible() -> ColumnElement[bool]:
 
 def _con_relaciones(consulta: Select) -> Select:
     return consulta.options(
-        selectinload(Articulo.categoria), selectinload(Articulo.autor), selectinload(Articulo.etiquetas)
+        selectinload(Articulo.categoria), selectinload(Articulo.tema), selectinload(Articulo.autor),
+        selectinload(Articulo.etiquetas),
     )
 
 
 # ---------- Salidas ----------
 
 
-def _corto(c: Categoria | Etiqueta | None) -> Corto | None:
+def _corto(c: Categoria | Etiqueta | TemaGuia | None) -> Corto | None:
     return Corto(nombre=c.nombre, slug=c.slug) if c else None
 
 
 def _fila(a: Articulo) -> ArticuloFila:
     return ArticuloFila(
-        id=a.id, titulo=a.titulo, slug=a.slug, estado=a.estado, destacado=a.destacado,
+        id=a.id, titulo=a.titulo, slug=a.slug, tipo=a.tipo, tema=_corto(a.tema), estado=a.estado, destacado=a.destacado,
         categoria=_corto(a.categoria), autor=AutorCorto(id=a.autor.id, nombre=a.autor.nombre, username=a.autor.username),
         publicado_en=a.publicado_en, actualizado_en=a.actualizado_en,
         seo_completo=bool(a.meta_descripcion and a.resumen),
@@ -94,7 +98,7 @@ def _editor(a: Articulo, almacen: Almacen) -> ArticuloEditor:
 def _tarjeta(a: Articulo, almacen: Almacen) -> ArticuloTarjeta:
     assert a.publicado_en is not None
     return ArticuloTarjeta(
-        titulo=a.titulo, slug=a.slug, resumen=a.resumen,
+        titulo=a.titulo, slug=a.slug, tipo=a.tipo, tema=_corto(a.tema), resumen=a.resumen,
         imagen=almacen.url(a.imagen_clave) if a.imagen_clave else None,
         categoria=_corto(a.categoria), autor=AutorPublico(nombre=a.autor.nombre, username=a.autor.username),
         publicado_en=a.publicado_en, minutos_lectura=a.minutos_lectura, destacado=a.destacado,
@@ -204,6 +208,14 @@ def _aplicar(db: Session, quien: Usuario, a: Articulo, datos: ArticuloIn) -> Non
         raise ErrorNegocio(status.HTTP_400_BAD_REQUEST, "La categoría no existe.")
     a.titulo = datos.titulo
     a.slug = _slug_libre(db, datos.slug or slugificar(datos.titulo, 170), a.id)
+    a.tipo = datos.tipo
+    if datos.tipo == TipoArticulo.GUIA:
+        tema = db.get(TemaGuia, datos.tema_id) if datos.tema_id else None
+        if datos.tema_id and tema is None:
+            raise ErrorNegocio(status.HTTP_400_BAD_REQUEST, "El tema de la guía no existe.")
+        a.tema_id = tema.id if tema else db.scalar(select(TemaGuia.id).where(TemaGuia.slug == "otros"))
+    else:
+        a.tema_id = None
     a.resumen = datos.resumen or None
     a.contenido = datos.contenido
     a.contenido_html = markdown.a_html(datos.contenido)
@@ -292,9 +304,15 @@ def listar_publicos(
     etiqueta: str | None = None,
     autor: str | None = None,
     q: str | None = None,
+    tipo: str | None = None,
+    tema: str | None = None,
 ) -> PaginaArticulos:
     """Lo más nuevo primero; con `q`, lo más relevante primero (búsqueda en español)."""
     consulta = select(Articulo).where(visible())
+    if tipo:
+        consulta = consulta.where(Articulo.tipo == tipo)
+    if tema:
+        consulta = consulta.where(Articulo.tema_id.in_(select(TemaGuia.id).where(TemaGuia.slug == tema)))
     if categoria:
         # Una categoría incluye las de su segundo nivel.
         padre = select(Categoria.id).where(Categoria.slug == categoria).scalar_subquery()
@@ -391,12 +409,13 @@ def autor_publico(db: Session, almacen: Almacen, username: str) -> AutorConArtic
     return AutorConArticulos(nombre=u.nombre, username=u.username, biografia=u.biografia, articulos=articulos)
 
 
-def mapa_del_sitio(db: Session) -> list[tuple[str, datetime]]:
-    """(slug, última modificación) de todo lo publicado: para sitemap.xml."""
+def mapa_del_sitio(db: Session) -> list[tuple[str, str, str | None, datetime]]:
+    """(slug, tipo, tema, última modificación) de todo lo publicado: para sitemap.xml."""
     return [
-        (slug, fecha)
-        for slug, fecha in db.execute(
-            select(Articulo.slug, Articulo.actualizado_en).where(visible()).order_by(Articulo.publicado_en.desc())
+        (slug, tipo, tema, fecha)
+        for slug, tipo, tema, fecha in db.execute(
+            select(Articulo.slug, Articulo.tipo, TemaGuia.slug, Articulo.actualizado_en)
+            .outerjoin(TemaGuia, TemaGuia.id == Articulo.tema_id).where(visible()).order_by(Articulo.publicado_en.desc())
         ).all()
     ]
 
@@ -421,6 +440,17 @@ def mas_leidos(db: Session, almacen: Almacen, limite: int) -> list[MasLeido]:
         ).all()  # fmt: skip
         lista += [(a, 0) for a in recientes]
     return [
-        MasLeido(titulo=a.titulo, slug=a.slug, imagen=almacen.url(a.imagen_clave) if a.imagen_clave else None, vistas=n)
+        MasLeido(titulo=a.titulo, slug=a.slug, tipo=a.tipo, tema=_corto(a.tema), imagen=almacen.url(a.imagen_clave) if a.imagen_clave else None, vistas=n)
         for a, n in lista
+    ]
+
+
+def temas_guia(db: Session) -> list[CategoriaOut]:
+    """Cada tema con cuántas guías publicadas tiene."""
+    cuantas = (
+        select(func.count()).select_from(Articulo).where(Articulo.tema_id == TemaGuia.id, visible()).scalar_subquery()
+    )
+    return [
+        CategoriaOut(id=t.id, nombre=t.nombre, slug=t.slug, descripcion=None, padre_id=None, orden=t.orden, articulos=n)
+        for t, n in db.execute(select(TemaGuia, cuantas).order_by(TemaGuia.orden, TemaGuia.nombre)).all()
     ]

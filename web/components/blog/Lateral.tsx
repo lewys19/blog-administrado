@@ -6,6 +6,7 @@ import { FormBoletin } from "@/components/blog/FormBoletin";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { cifra, pais } from "@/lib/formato";
 import type { ArticuloTarjeta, AutorFicha, Cuenta, Etiqueta, MasLeido } from "@/lib/tipos";
+import { rutaArticulo } from "@/lib/rutas";
 
 export function Caja({
   titulo,
@@ -90,7 +91,7 @@ export function Relacionados({ articulos }: { articulos: ArticuloTarjeta[] }) {
       <ul className="space-y-4">
         {articulos.map((a) => (
           <li key={a.slug}>
-            <Link href={`/blog/${a.slug}`} className="group flex gap-3">
+            <Link href={rutaArticulo(a)} className="group flex gap-3">
               <Miniatura imagen={a.imagen} titulo={a.titulo} />
               <span className="min-w-0">
                 <span className="line-clamp-2 text-sm font-semibold group-hover:text-marca-fuerte">{a.titulo}</span>
@@ -113,7 +114,7 @@ export function MasLeidos({ articulos }: { articulos: MasLeido[] }) {
       <ol className="space-y-3">
         {articulos.map((a, i) => (
           <li key={a.slug}>
-            <Link href={`/blog/${a.slug}`} className="group flex items-center gap-3">
+            <Link href={rutaArticulo(a)} className="group flex items-center gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-marca text-sm font-bold text-white">
                 {i + 1}
               </span>
