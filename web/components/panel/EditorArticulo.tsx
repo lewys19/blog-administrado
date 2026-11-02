@@ -8,6 +8,7 @@ import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useRef, us
 import { puede, usePanel } from "@/components/panel/Panel";
 import { Aviso, Caja } from "@/components/panel/Tabla";
 import { ErrorApi, pedir } from "@/lib/api";
+import { GenerarConIA } from "@/components/panel/GenerarConIA";
 import type { ArticuloEditor, Categoria, EstadoArticulo } from "@/lib/tipos";
 
 const ENTRADA = "w-full rounded-lg border border-borde bg-superficie px-3 py-2 text-sm outline-none focus:border-marca";
@@ -204,6 +205,20 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
       className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
     >
       <div className="min-w-0 space-y-4">
+        {puede(yo, "ia.usar") && (
+          <GenerarConIA
+            hayTexto={!!(titulo.trim() || contenido.trim())}
+            alGenerar={(b) => {
+              setTitulo(b.titulo);
+              setResumen(b.resumen);
+              setContenido(b.contenido);
+              setEtiquetas(b.etiquetas.join(", "));
+              if (!a) setSlugEditado(false); // en uno nuevo, la URL se arma del título generado
+              setPestana("escribir");
+              setOk("Borrador generado: revísalo y guárdalo.");
+            }}
+          />
+        )}
         <input
           id="articulo-titulo"
           aria-label="Título"

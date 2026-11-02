@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     CORREO_REMITENTE: str = "zcorp-stack <no-responder@localhost>"
     CARPETA_BUZON: str = "./buzon"
 
+    # IA (Claude). Sin clave, el botón «Generar con IA» avisa que falta configurarla.
+    ANTHROPIC_API_KEY: str = ""
+    IA_MODELO: str = "claude-opus-5-5"
+    IA_ESFUERZO: str = "medium"  # low, medium, high, xhigh o max: más alto = mejor y más caro
+
     # Zona con la que se cortan los días y meses de las estadísticas ("hoy" empieza a medianoche de Lima).
     ZONA_HORARIA: str = "America/Lima"
 

@@ -56,17 +56,18 @@ interface Opciones {
   cuerpo?: unknown;
   conSesion?: boolean;
   senal?: AbortSignal; // para cancelar una búsqueda que ya no sirve
+  limiteMs?: number; // espera máxima; por defecto 20 s (60 s con archivos)
 }
 
 export async function pedir<T>(
   ruta: string,
-  { metodo = "GET", cuerpo, conSesion = false, senal }: Opciones = {},
+  { metodo = "GET", cuerpo, conSesion = false, senal, limiteMs }: Opciones = {},
 ): Promise<T> {
   // Un FormData (fotos) se envía tal cual: el navegador pone el Content-Type con su separador.
   const esArchivo = cuerpo instanceof FormData;
   // Nunca esperar para siempre: si la respuesta se pierde, el formulario muestra un error en vez de quedarse
   // en "Un momento…". Las fotos tienen más margen (redes móviles lentas).
-  const limite = AbortSignal.timeout(esArchivo ? 60_000 : 20_000);
+  const limite = AbortSignal.timeout(limiteMs ?? (esArchivo ? 60_000 : 20_000));
   const enviar = (sesion: Sesion | null) =>
     fetch(`${BASE}${ruta}`, {
       method: metodo,

@@ -50,6 +50,9 @@ services:
       SMTP_SEGURIDAD: ${SMTP_SEGURIDAD:-starttls}
       CORREO_REMITENTE: ${CORREO_REMITENTE:-zcorp-stack <no-responder@zcorp23.com>}
       CARPETA_BUZON: /app/media/.buzon
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      IA_MODELO: ${IA_MODELO:-claude-opus-5-5}
+      IA_ESFUERZO: ${IA_ESFUERZO:-medium}
     volumes:
       - blog-media:/app/media
     depends_on:

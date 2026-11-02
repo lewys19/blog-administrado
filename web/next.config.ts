@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Solo en `npm run dev`: permite abrirla desde otra PC de la red local (p. ej. Windows → VM Kali).
   allowedDevOrigins: ["192.168.*.*"],
+  // El proxy hacia la API corta a los 30 s por defecto; generar un artículo con IA tarda más.
+  experimental: { proxyTimeout: 300_000 },
   async rewrites() {
     return [
       { source: "/api/v1/:ruta*", destination: `${API_INTERNA}/api/v1/:ruta*` },
