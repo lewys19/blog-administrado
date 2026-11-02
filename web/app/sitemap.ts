@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
   return [
     { url: SITIO_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${SITIO_URL}/blog`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITIO_URL}/categorias`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITIO_URL}/sobre-nosotros`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITIO_URL}/contacto`, changeFrequency: "yearly", priority: 0.3 },
