@@ -89,6 +89,14 @@ export const SECCIONES: Seccion[] = [
     descripcion: "Proyectos propios (POS, CRM, automatización): descripción, tecnologías y cómo instalar.",
   },
   {
+    ruta: "academia/promociones",
+    texto: "Promociones",
+    grupo: "Academia",
+    icono: "M3 12V4h8l10 10-8 8zm4-6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z",
+    permiso: "academia.gestionar",
+    descripcion: "Packs con precio especial, por ejemplo 2 cursos a $10.",
+  },
+  {
     ruta: "academia/categorias",
     texto: "Categorías de academia",
     grupo: "Academia",

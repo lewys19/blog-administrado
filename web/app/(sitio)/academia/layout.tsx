@@ -15,6 +15,9 @@ export default function LayoutAcademia({ children }: LayoutProps<"/academia">) {
                 <EnlaceMenu href={`/academia/${seccion}`}>{titulo}</EnlaceMenu>
               </li>
             ))}
+            <li>
+              <EnlaceMenu href="/academia/promociones">Promociones</EnlaceMenu>
+            </li>
           </Suspense>
         </ul>
       </nav>

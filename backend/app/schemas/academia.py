@@ -130,3 +130,28 @@ class Lateral(BaseModel):
     etiquetas: list[EtiquetaAcademiaOut]
     anuncios: list[AnuncioOut]
     curso: CursoTarjeta | None
+
+
+class PromocionIn(BaseModel):
+    titulo: Annotated[Texto, Field(min_length=2, max_length=80)]
+    detalle: Annotated[Texto, Field(max_length=1000)] = ""
+    precio_anterior: Precio | None = None
+    precio: Annotated[Decimal, Field(gt=0, max_digits=8, decimal_places=2)]
+    orden: Annotated[int, Field(ge=0, le=999)] = 0
+    activa: bool = True
+
+    @model_validator(mode="after")
+    def _oferta(self) -> "PromocionIn":
+        if self.precio_anterior is not None and self.precio_anterior <= self.precio:
+            raise ValueError("El precio anterior debe ser mayor que el precio de la promoción.")
+        return self
+
+
+class PromocionOut(BaseModel):
+    id: int
+    titulo: str
+    detalle: list[str]
+    precio_anterior: float | None
+    precio: float
+    orden: int
+    activa: bool

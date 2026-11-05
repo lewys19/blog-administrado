@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.almacen import Almacen
 from app.core.errores import ErrorNegocio
 from app.core.slugs import slugificar
-from app.models import AnuncioAcademia, CategoriaAcademia, Curso, EtiquetaAcademia, TipoRecurso
+from app.models import AnuncioAcademia, CategoriaAcademia, Curso, EtiquetaAcademia, PromocionAcademia, TipoRecurso
 from app.schemas.academia import (
     AnuncioIn,
     AnuncioOut,
@@ -24,6 +24,8 @@ from app.schemas.academia import (
     EtiquetaAcademiaOut,
     Lateral,
     PaginaCursos,
+    PromocionIn,
+    PromocionOut,
 )
 from app.services import imagenes
 
@@ -365,3 +367,47 @@ def lateral(db: Session, almacen: Almacen) -> Lateral:
         anuncios=[_anuncio_out(a, almacen) for a in activos],
         curso=CursoTarjeta(**_tarjeta(propio, almacen)) if propio else None,
     )
+
+
+# ---------- Promociones ----------
+
+
+def _promocion_out(p: PromocionAcademia) -> PromocionOut:
+    return PromocionOut(
+        id=p.id,
+        titulo=p.titulo,
+        detalle=[linea.strip() for linea in p.detalle.splitlines() if linea.strip()],
+        precio_anterior=p.precio_anterior,
+        precio=p.precio,
+        orden=p.orden,
+        activa=p.activa,
+    )
+
+
+def listar_promociones(db: Session, solo_activas: bool = True) -> list[PromocionOut]:
+    consulta = select(PromocionAcademia).order_by(PromocionAcademia.orden, PromocionAcademia.id)
+    if solo_activas:
+        consulta = consulta.where(PromocionAcademia.activa)
+    return [_promocion_out(p) for p in db.scalars(consulta)]
+
+
+def _promocion(db: Session, promocion_id: int) -> PromocionAcademia:
+    p = db.get(PromocionAcademia, promocion_id)
+    if p is None:
+        raise ErrorNegocio(status.HTTP_404_NOT_FOUND, "Promoción no encontrada.")
+    return p
+
+
+def guardar_promocion(db: Session, datos: PromocionIn, promocion_id: int | None = None) -> PromocionOut:
+    p = _promocion(db, promocion_id) if promocion_id else PromocionAcademia()
+    for campo, valor in datos.model_dump().items():
+        setattr(p, campo, valor)
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return _promocion_out(p)
+
+
+def eliminar_promocion(db: Session, promocion_id: int) -> None:
+    db.delete(_promocion(db, promocion_id))
+    db.commit()

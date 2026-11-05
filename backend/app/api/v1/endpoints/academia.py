@@ -21,6 +21,8 @@ from app.schemas.academia import (
     EtiquetaAcademiaOut,
     Lateral,
     PaginaCursos,
+    PromocionIn,
+    PromocionOut,
 )
 from app.services import academia
 
@@ -46,6 +48,11 @@ def cursos(
     por_pagina: Annotated[int, Query(ge=1, le=100)] = 12,
 ) -> PaginaCursos:
     return academia.listar_publicos(db, almacen, categoria, destacados, q, tipo, pagina, por_pagina)
+
+
+@router.get("/promociones", response_model=list[PromocionOut])
+def promociones(db: Db) -> list[PromocionOut]:
+    return academia.listar_promociones(db)
 
 
 @router.get("/lateral", response_model=Lateral)
@@ -166,3 +173,24 @@ async def subir_imagen_anuncio(
     if len(datos) > limite:
         raise ErrorNegocio(status.HTTP_413_CONTENT_TOO_LARGE, f"La imagen pesa más de {settings.MAX_MB_FOTO} MB.")
     return academia.cambiar_imagen_anuncio(db, almacen, anuncio_id, datos)
+
+
+@panel.get("/promociones", response_model=list[PromocionOut])
+def listar_promociones(_quien: GestionarAcademia, db: Db) -> list[PromocionOut]:
+    return academia.listar_promociones(db, solo_activas=False)
+
+
+@panel.post("/promociones", response_model=PromocionOut, status_code=status.HTTP_201_CREATED)
+def crear_promocion(datos: PromocionIn, _quien: GestionarAcademia, db: Db) -> PromocionOut:
+    return academia.guardar_promocion(db, datos)
+
+
+@panel.put("/promociones/{promocion_id}", response_model=PromocionOut)
+def editar_promocion(promocion_id: int, datos: PromocionIn, _quien: GestionarAcademia, db: Db) -> PromocionOut:
+    return academia.guardar_promocion(db, datos, promocion_id)
+
+
+@panel.delete("/promociones/{promocion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_promocion(promocion_id: int, _quien: GestionarAcademia, db: Db) -> Response:
+    academia.eliminar_promocion(db, promocion_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

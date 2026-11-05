@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { enlaceWhatsapp, precioTexto, rutaCurso, seccionAcademia } from "./academia";
+import { enlacePromocion, enlaceWhatsapp, precioTexto, rutaCurso, seccionAcademia } from "./academia";
 
 describe("precioTexto", () => {
   it("quita los decimales solo si el precio es exacto", () => {
@@ -25,5 +25,12 @@ describe("secciones", () => {
     expect(seccionAcademia("constructor")).toBeNull();
     const url = new URL(enlaceWhatsapp("51999", { tipo: "separata", titulo: "SQL", precio: 2 }));
     expect(url.searchParams.get("text")).toBe("Hola, quiero comprar la separata «SQL» ($2).");
+  });
+});
+
+describe("enlacePromocion", () => {
+  it("escribe el mensaje con la promoción y su precio", () => {
+    const url = new URL(enlacePromocion("51999", { titulo: "2 cursos", precio: 10 }));
+    expect(url.searchParams.get("text")).toBe("Hola, quiero la promoción «2 cursos» ($10).");
   });
 });

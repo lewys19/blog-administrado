@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
+    { url: `${SITIO_URL}/academia/promociones`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITIO_URL}/categorias`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITIO_URL}/sobre-nosotros`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITIO_URL}/contacto`, changeFrequency: "yearly", priority: 0.3 },

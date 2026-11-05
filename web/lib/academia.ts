@@ -41,6 +41,13 @@ export function precioTexto(precio: number): string {
 /** Enlace a WhatsApp con el mensaje ya escrito. Sin número, WhatsApp deja elegir el contacto. */
 export function enlaceWhatsapp(numero: string, curso: { tipo: Tipo; titulo: string; precio: number }): string {
   const que = SECCIONES_ACADEMIA[seccionDe(curso.tipo)].con;
-  const mensaje = `Hola, quiero comprar ${que} «${curso.titulo}» (${precioTexto(curso.precio)}).`;
+  return conMensaje(numero, `Hola, quiero comprar ${que} «${curso.titulo}» (${precioTexto(curso.precio)}).`);
+}
+
+export function enlacePromocion(numero: string, promocion: { titulo: string; precio: number }): string {
+  return conMensaje(numero, `Hola, quiero la promoción «${promocion.titulo}» (${precioTexto(promocion.precio)}).`);
+}
+
+function conMensaje(numero: string, mensaje: string): string {
   return `https://wa.me/${numero.replace(/\D/g, "")}?text=${encodeURIComponent(mensaje)}`;
 }

@@ -115,3 +115,17 @@ class AnuncioAcademia(Base):
     imagen_clave: Mapped[str | None] = mapped_column(String(200))
     activo: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PromocionAcademia(Base):
+    """Pack con precio especial: «2 cursos = $10». `detalle` dice qué incluye, un punto por línea."""
+
+    __tablename__ = "academia_promociones"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    titulo: Mapped[str] = mapped_column(String(80))
+    detalle: Mapped[str] = mapped_column(Text, default="")
+    precio_anterior: Mapped[Decimal | None] = mapped_column(Numeric(8, 2))
+    precio: Mapped[Decimal] = mapped_column(Numeric(8, 2))
+    orden: Mapped[int] = mapped_column(SmallInteger, default=0)
+    activa: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())

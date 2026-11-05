@@ -202,3 +202,22 @@ def test_manuales_separatas_y_sistemas(client: TestClient, registrar: Callable[.
     assert visto["tipo"] == "sistema" and visto["instalacion"].startswith("1. Clona")
     sistemas = [e["nombre"] for e in client.get(f"{PUBLICA}/lateral").json()["etiquetas"] if e["grupo"] == "sistemas"]
     assert sistemas == ["POS", "CRM", "Automatización"]
+
+
+def test_promociones(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), ADMINISTRADOR)
+    pack = {"titulo": "2 cursos", "detalle": "Curso React\n\n Curso TypeScript ", "precio_anterior": "16", "precio": "10"}
+    assert client.post(f"{PANEL}/promociones", json=pack | {"precio": "16"}, headers=h).status_code == 422
+    assert client.post(f"{PANEL}/promociones", json=pack | {"precio": "0"}, headers=h).status_code == 422
+    p = client.post(f"{PANEL}/promociones", json=pack | {"orden": 2}, headers=h).json()
+    assert p["detalle"] == ["Curso React", "Curso TypeScript"] and p["precio"] == 10
+    client.post(f"{PANEL}/promociones", json={"titulo": "1 curso", "precio": "8", "orden": 1}, headers=h)
+    assert [x["titulo"] for x in client.get(f"{PUBLICA}/promociones").json()] == ["1 curso", "2 cursos"]
+
+    # Pausada no sale al público, pero el panel la sigue viendo.
+    client.put(f"{PANEL}/promociones/{p['id']}", json=pack | {"activa": False}, headers=h)
+    assert [x["titulo"] for x in client.get(f"{PUBLICA}/promociones").json()] == ["1 curso"]
+    assert len(client.get(f"{PANEL}/promociones", headers=h).json()) == 2
+    assert client.delete(f"{PANEL}/promociones/{p['id']}", headers=h).status_code == 204
+    assert client.delete(f"{PANEL}/promociones/{p['id']}", headers=h).status_code == 404
+    assert client.post(f"{PANEL}/promociones", json=pack, headers=dar_rol(db, registrar("b@example.com"), EDITOR)).status_code == 403

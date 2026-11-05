@@ -163,6 +163,16 @@ export interface PaginaCursos {
   cursos: CursoTarjeta[];
 }
 
+export interface Promocion {
+  id: number;
+  titulo: string;
+  detalle: string[];
+  precio_anterior: number | null;
+  precio: number;
+  orden: number;
+  activa: boolean;
+}
+
 export type GrupoEtiqueta = "cursos" | "manuales" | "sistemas";
 
 export interface EtiquetaAcademia {

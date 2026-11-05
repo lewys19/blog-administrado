@@ -31,7 +31,7 @@ Cabeceras = dict[str, str]
 ADMINISTRADOR, EDITOR, REDACTOR, INVITADO = 1, 2, 3, 4
 
 URL_PRUEBAS = make_url(os.environ.get("DATABASE_URL_PRUEBAS") or settings.DATABASE_URL).set(database="zcorp_pruebas")
-TABLAS_DE_DATOS = "academia_anuncios, cursos, envios, suscriptores, comentarios, visitas, articulo_etiqueta, articulos, etiquetas, tokens_refresco, usuarios"
+TABLAS_DE_DATOS = "academia_anuncios, academia_promociones, cursos, envios, suscriptores, comentarios, visitas, articulo_etiqueta, articulos, etiquetas, tokens_refresco, usuarios"
 
 
 def _crear_base_si_falta() -> None:

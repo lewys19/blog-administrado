@@ -11,12 +11,18 @@ import type { CategoriaAcademia, CursoPanel } from "@/lib/tipos";
 
 import { Anuncios } from "./Anuncios";
 import { Etiquetas } from "./Etiquetas";
+import { Promociones } from "./Promociones";
 
 const ENTRADA = "w-full rounded-md border border-borde bg-superficie px-3 py-2 text-sm outline-none focus:border-marca";
 const BOTON = "rounded-lg bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo";
 const ETIQUETA = "mb-1 block font-medium text-texto-2";
 
-const OTRAS = { categorias: "Categorías", etiquetas: "Etiquetas", publicidad: "Publicidad" } as const;
+const OTRAS = {
+  categorias: "Categorías",
+  etiquetas: "Etiquetas",
+  publicidad: "Publicidad",
+  promociones: "Promociones",
+} as const;
 
 interface BorradorCurso {
   id: number | null;
@@ -522,6 +528,7 @@ function Seccion({ pestana }: { pestana: string }) {
 
       {pestana === "etiquetas" && <Etiquetas />}
       {pestana === "publicidad" && <Anuncios />}
+      {pestana === "promociones" && <Promociones />}
 
       {textos && (
         <Caja className="overflow-x-auto">
