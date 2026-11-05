@@ -28,6 +28,7 @@ RUN npm run build
 FROM node:24-alpine
 WORKDIR /app
 # Las mismas variables también para las páginas que se arman en cada visita.
+ARG API_INTERNA=http://api:8000
 ARG SITIO_URL=http://localhost:3300
 ARG CORREO_CONTACTO=""
 ARG RED_FACEBOOK=""
@@ -36,7 +37,7 @@ ARG RED_LINKEDIN=""
 ARG RED_YOUTUBE=""
 ARG RED_GITHUB=""
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 \
-    SITIO_URL=$SITIO_URL CORREO_CONTACTO=$CORREO_CONTACTO RED_FACEBOOK=$RED_FACEBOOK RED_X=$RED_X \
+    API_INTERNA=$API_INTERNA SITIO_URL=$SITIO_URL CORREO_CONTACTO=$CORREO_CONTACTO RED_FACEBOOK=$RED_FACEBOOK RED_X=$RED_X \
     RED_LINKEDIN=$RED_LINKEDIN RED_YOUTUBE=$RED_YOUTUBE RED_GITHUB=$RED_GITHUB
 COPY --from=compilacion --chown=node:node /app/.next/standalone ./
 COPY --from=compilacion --chown=node:node /app/.next/static ./.next/static
