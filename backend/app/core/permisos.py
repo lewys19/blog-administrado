@@ -20,6 +20,7 @@ PERMISOS: dict[str, str] = {
     "roles.gestionar": "Crear roles y asignarlos",
     # Ingresos
     "publicidad.gestionar": "Banners, AdSense, afiliados y patrocinios",
+    "academia.gestionar": "Crear categorías y cursos de la Academia Digital",
     "ingresos.ver": "Ver ingresos y ventas",
     "newsletter.gestionar": "Enviar el boletín y ver suscriptores",
     # Herramientas

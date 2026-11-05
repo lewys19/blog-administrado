@@ -73,6 +73,8 @@ services:
     image: ghcr.io/lewys19/blog-administrado-web:${VERSION:-latest}
     container_name: blog-web
     # La imagen ya trae API_INTERNA=http://api:8000 y SITIO_URL (fijados al compilar en GitHub Actions).
+    environment:
+      WHATSAPP_ACADEMIA: ${WHATSAPP_ACADEMIA:-}
     networks:
       - default
       - proxy

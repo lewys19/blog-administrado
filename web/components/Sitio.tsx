@@ -5,9 +5,7 @@ import { EnlaceMenu } from "@/components/blog/EnlaceMenu";
 import { FechaHoy } from "@/components/blog/Fecha";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { Isotipo } from "@/components/Logo";
-import { obtener } from "@/lib/servidor";
 import { LEMA, NOMBRE_SITIO, REDES } from "@/lib/sitio";
-import type { Categoria } from "@/lib/tipos";
 
 function Marca() {
   return (
@@ -57,8 +55,8 @@ function Buscador({ className = "" }: { className?: string }) {
         id="buscar-sitio"
         name="q"
         type="search"
-        placeholder="Buscar artículos, tutoriales, temas…"
-        className="min-w-0 flex-1 rounded-l-lg border border-r-0 border-borde bg-fondo px-3.5 py-2.5 text-sm outline-none focus:border-marca"
+        placeholder="Buscar artículos y guías…"
+        className="min-w-0 flex-1 rounded-l-lg border border-r-0 border-borde bg-fondo px-3.5 py-2 text-sm outline-none focus:border-marca"
       />
       <button
         type="submit"
@@ -71,61 +69,40 @@ function Buscador({ className = "" }: { className?: string }) {
   );
 }
 
-/** Menú de categorías: las principales, con sus subcategorías en un desplegable (en computadora). */
-async function Menu() {
-  const categorias = (await obtener<Categoria[]>("/blog/categorias")) ?? [];
-  const principales = categorias.filter((c) => !c.padre_id);
+/** Menú principal. Las categorías del blog están en /categorias. */
+function Menu() {
   return (
-    <nav aria-label="Categorías" className="border-t border-borde">
-      <ul className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2 md:overflow-visible">
-        <li>
-          <EnlaceMenu href="/">Inicio</EnlaceMenu>
-        </li>
-        <li>
-          <EnlaceMenu href="/blog">Blog</EnlaceMenu>
-        </li>
-        <li>
-          <EnlaceMenu href="/guias">Guías</EnlaceMenu>
-        </li>
-        {principales.map((c) => {
-          const hijas = categorias.filter((h) => h.padre_id === c.id);
-          return (
-            <li key={c.slug} className="group relative">
-              <EnlaceMenu href={`/categoria/${c.slug}`}>
-                {c.nombre}
-                {!!hijas.length && <Icono d={ICONOS.abajo} className="hidden h-3.5 w-3.5 md:block" />}
-              </EnlaceMenu>
-              {!!hijas.length && (
-                <ul className="absolute top-full left-0 z-40 hidden min-w-48 rounded-xl border border-borde bg-pagina p-1.5 shadow-lg md:group-focus-within:block md:group-hover:block">
-                  {hijas.map((h) => (
-                    <li key={h.slug}>
-                      <Link
-                        href={`/categoria/${h.slug}`}
-                        className="block rounded-lg px-3 py-2 text-sm hover:bg-marca-suave hover:text-marca-fuerte"
-                      >
-                        {h.nombre}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-        <li>
-          <EnlaceMenu href="/categorias">Todas las categorías</EnlaceMenu>
-        </li>
-      </ul>
+    <nav aria-label="Menú principal" className="border-t border-borde">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2">
+        <ul className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          <li>
+            <EnlaceMenu href="/">Inicio</EnlaceMenu>
+          </li>
+          <li>
+            <EnlaceMenu href="/blog">Blog</EnlaceMenu>
+          </li>
+          <li>
+            <EnlaceMenu href="/guias">Guías</EnlaceMenu>
+          </li>
+          <li>
+            <EnlaceMenu href="/academia">Academia Digital</EnlaceMenu>
+          </li>
+          <li>
+            <EnlaceMenu href="/categorias">Todas las categorías</EnlaceMenu>
+          </li>
+        </ul>
+        <Buscador className="w-full md:w-72" />
+      </div>
     </nav>
   );
 }
 
-/** Logo a la izquierda; a la derecha, arriba la fecha, enlaces y redes, y abajo el buscador ancho. */
+/** Logo a la izquierda; a la derecha, la fecha, enlaces y redes. */
 function Superior() {
   return (
     <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-10 gap-y-3 px-4 py-4">
       <Marca />
-      <div className="w-full space-y-2.5 sm:w-auto sm:flex-1">
+      <div className="w-full sm:w-auto sm:flex-1">
         <div className="hidden items-center justify-end gap-5 text-xs text-texto-2 lg:flex">
           <span className="flex items-center gap-1.5 capitalize">
             <Icono d={ICONOS.calendario} className="h-4 w-4" />
@@ -139,7 +116,6 @@ function Superior() {
           </Link>
           <Redes />
         </div>
-        <Buscador className="w-full" />
       </div>
     </div>
   );
@@ -168,6 +144,7 @@ const ENLACES_PIE = [
   { texto: "Inicio", href: "/" },
   { texto: "Blog", href: "/blog" },
   { texto: "Guías", href: "/guias" },
+  { texto: "Academia Digital", href: "/academia" },
   { texto: "Categorías", href: "/categorias" },
   { texto: "Buscar", href: "/buscar" },
   { texto: "Sobre nosotros", href: "/sobre-nosotros" },

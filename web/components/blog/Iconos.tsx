@@ -7,6 +7,14 @@ const CATEGORIAS: Record<string, string> = {
   sql: "M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zm0 0v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
   qa: "M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zM9 12l2 2 4-4",
   ia: "M9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3M6 6h12v12H6zm4 4h4v4h-4z",
+  // Academia Digital
+  "inteligencia-artificial": "M9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3M6 6h12v12H6zm4 4h4v4h-4z",
+  backend: "M4 4h16v6H4zm0 10h16v6H4zM8 7h.01M8 17h.01",
+  "qa-testing": "M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8",
+  devops: "M7 8a4 4 0 1 0 0 8c3 0 7-8 10-8a4 4 0 1 1 0 8c-3 0-7-8-10-8z",
+  linux: "M4 5h16v14H4zM7 10l3 2-3 2m5 0h5",
+  ciberseguridad: "M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zm-2 8h4v4h-4zm1 0V9a1 1 0 0 1 2 0v2",
+  matematicas: "M4 20V4l16 16zM8 16h3.5L8 12.5z",
 };
 const CARPETA = "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z";
 

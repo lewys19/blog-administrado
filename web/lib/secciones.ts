@@ -4,7 +4,7 @@
 export interface Seccion {
   ruta: string; // después de /admin
   texto: string;
-  grupo: "Contenido" | "Comunidad" | "Ingresos" | "Herramientas" | null;
+  grupo: "Contenido" | "Academia" | "Comunidad" | "Ingresos" | "Herramientas" | null;
   icono: string; // trazo SVG 24×24
   permiso?: string; // "a|b": basta con uno
   /** Texto para quien solo escribe guías (Colaborador). */
@@ -55,6 +55,62 @@ export const SECCIONES: Seccion[] = [
     icono: "M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z",
     permiso: "seo.gestionar",
     descripcion: "Meta title, description, palabras clave, URL amigable, OpenGraph y Schema.org; sitemap y RSS.",
+  },
+  {
+    ruta: "academia/cursos",
+    texto: "Cursos",
+    grupo: "Academia",
+    icono: "M12 4 2 9l10 5 10-5zM6 12v5c0 1 3 3 6 3s6-2 6-3v-5",
+    permiso: "academia.gestionar",
+    descripcion: "Cursos de la Academia Digital: gratis con enlace o de pago por WhatsApp.",
+  },
+  {
+    ruta: "academia/manuales",
+    texto: "Manuales",
+    grupo: "Academia",
+    icono: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zm0 13a3 3 0 0 1 3-3h11",
+    permiso: "academia.gestionar",
+    descripcion: "Manuales en PDF de la Academia Digital.",
+  },
+  {
+    ruta: "academia/separatas",
+    texto: "Separatas",
+    grupo: "Academia",
+    icono: "M6 2h9l5 5v15H6zm8 1.5V8h4.5",
+    permiso: "academia.gestionar",
+    descripcion: "Separatas y apuntes de la Academia Digital.",
+  },
+  {
+    ruta: "academia/sistemas",
+    texto: "Sistemas",
+    grupo: "Academia",
+    icono: "M3 5h18v11H3zm5 15h8m-4-4v4",
+    permiso: "academia.gestionar",
+    descripcion: "Proyectos propios (POS, CRM, automatización): descripción, tecnologías y cómo instalar.",
+  },
+  {
+    ruta: "academia/categorias",
+    texto: "Categorías de academia",
+    grupo: "Academia",
+    icono: "M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z",
+    permiso: "academia.gestionar",
+    descripcion: "Inteligencia Artificial, Programación, Backend y demás.",
+  },
+  {
+    ruta: "academia/etiquetas",
+    texto: "Etiquetas de academia",
+    grupo: "Academia",
+    icono: "M3 12V4h8l10 10-8 8zm4-6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z",
+    permiso: "academia.gestionar",
+    descripcion: "Las etiquetas de la columna derecha.",
+  },
+  {
+    ruta: "academia/publicidad",
+    texto: "Anuncios de academia",
+    grupo: "Academia",
+    icono: "M3 10v4a1 1 0 0 0 1 1h2l4 4V5L6 9H4a1 1 0 0 0-1 1zm13.5 2A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z",
+    permiso: "academia.gestionar",
+    descripcion: "Anuncios de la columna derecha.",
   },
   {
     ruta: "comentarios",

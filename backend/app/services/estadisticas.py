@@ -328,6 +328,12 @@ def resumen(db: Session) -> ResumenVisitas:
     )
 
 
+def paises_mapa(db: Session) -> list[Cuenta]:
+    """Para el mapa de la portada: todos los países con visitas en los últimos 30 días."""
+    hasta = ahora()
+    return [c for c in _conteo(db, Visita.pais, hasta - timedelta(days=30), hasta, 250) if c.clave]
+
+
 def paises_publicos(db: Session, limite: int = 5) -> list[Cuenta]:
     """Para la portada: de dónde vienen los lectores en los últimos 30 días (solo conteos, nada personal)."""
     hasta = ahora()

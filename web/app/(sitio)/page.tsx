@@ -33,11 +33,12 @@ function repartir(articulos: ArticuloTarjeta[]) {
 }
 
 export default async function Portada() {
-  const [pagina, etiquetas, leidos, paises] = await Promise.all([
+  const [pagina, etiquetas, leidos, paises, mapa] = await Promise.all([
     obtener<PaginaArticulos>("/blog/articulos?por_pagina=16"),
     obtener<Etiqueta[]>("/blog/etiquetas"),
     obtener<MasLeido[]>("/blog/mas-leidos?limite=5"),
     obtener<Cuenta[]>("/blog/paises"),
+    obtener<Cuenta[]>("/blog/paises/mapa"),
   ]);
   const { carrusel, destacados, ultimos } = repartir(pagina?.articulos ?? []);
 
@@ -91,7 +92,7 @@ export default async function Portada() {
             </div>
           </section>
           <aside className="lg:pt-11" aria-label="Visitantes">
-            <Paises cuentas={paises ?? []} />
+            <Paises cuentas={paises ?? []} mapa={mapa ?? []} />
           </aside>
         </div>
       )}

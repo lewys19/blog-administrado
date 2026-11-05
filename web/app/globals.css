@@ -191,6 +191,7 @@ summary {
 }
 /* Bloques de código: siempre oscuros (se leen mejor y es lo que esperan los programadores). */
 .contenido .codigo {
+  position: relative;
   background: #0f1d16;
   border-radius: 0.75rem;
   border: 1px solid #1f3a2b;
@@ -202,6 +203,23 @@ summary {
   font-size: 0.88rem;
   line-height: 1.6;
   color: #dbe7df;
+}
+/* El botón queda fijo en la esquina aunque el código se desplace de lado. */
+.copiar-codigo {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2em 0.7em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dbe7df;
+  background: #1f3a2b;
+  border: 1px solid #2f5540;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+.copiar-codigo:hover {
+  background: #2f5540;
 }
 /* Colores de Pygments (clases que pone el servidor). */
 .codigo .k, .codigo .kn, .codigo .kd, .codigo .kr, .codigo .kc, .codigo .ow { color: #7ee2a8; }

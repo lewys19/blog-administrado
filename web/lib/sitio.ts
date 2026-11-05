@@ -20,5 +20,8 @@ export const REDES = (
   .filter(([, , url]) => !!url)
   .map(([red, nombre, url]) => ({ red, nombre, url: url as string }));
 
+/** Número de WhatsApp de ventas de la Academia, con código de país (51999888777). */
+export const WHATSAPP_ACADEMIA = process.env.WHATSAPP_ACADEMIA ?? "";
+
 /** Correo de contacto público (opcional). */
 export const CORREO_CONTACTO = process.env.CORREO_CONTACTO ?? "";

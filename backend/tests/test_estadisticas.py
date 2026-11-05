@@ -139,3 +139,12 @@ def test_paises_publicos(client: TestClient) -> None:
     datos = client.get("/api/v1/blog/paises").json()
     assert datos[0] == {"clave": "PE", "visitas": 2}
     assert {d["clave"] for d in datos} >= {"MX", "ES"}
+
+
+def test_paises_del_mapa(client: TestClient) -> None:
+    visitar(client, "/", **{"Accept-Language": "en"})  # sin país conocido: no entra al mapa
+    for pais in ["PE", "PE", "MX", "ES", "CO", "AR", "CL", "BR"]:  # más que los 5 de la lista
+        visitar(client, "/", **{settings.CABECERA_PAIS: pais})
+    datos = client.get("/api/v1/blog/paises/mapa").json()
+    assert datos[0] == {"clave": "PE", "visitas": 2} and len(datos) == 7
+    assert all(d["clave"] for d in datos)

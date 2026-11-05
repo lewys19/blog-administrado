@@ -1,5 +1,6 @@
 """Importa todos los modelos para que SQLAlchemy y Alembic los registren."""
 
+from app.models.academia import AnuncioAcademia, CategoriaAcademia, Curso, EtiquetaAcademia, GrupoEtiqueta, NivelCurso, TipoRecurso
 from app.models.comentario import Comentario, EstadoComentario
 from app.models.contenido import Articulo, Categoria, EstadoArticulo, Etiqueta, TemaGuia, TipoArticulo, articulo_etiqueta
 from app.models.estadistica import Visita
@@ -7,17 +8,24 @@ from app.models.newsletter import Envio, EstadoEnvio, EstadoSuscriptor, Suscript
 from app.models.usuario import Rol, TokenRefresco, Usuario
 
 __all__ = [
+    "AnuncioAcademia",
     "Articulo",
     "Categoria",
+    "CategoriaAcademia",
     "Comentario",
+    "Curso",
     "Envio",
     "EstadoComentario",
     "EstadoEnvio",
     "EstadoSuscriptor",
     "EstadoArticulo",
     "Etiqueta",
+    "EtiquetaAcademia",
+    "GrupoEtiqueta",
+    "NivelCurso",
     "TemaGuia",
     "TipoArticulo",
+    "TipoRecurso",
     "Rol",
     "Suscriptor",
     "TokenRefresco",

@@ -191,7 +191,7 @@ function BarraLateral({ yo, abierta, alCerrar }: { yo: Yo; abierta: boolean; alC
   const visibles = SECCIONES.filter((s) => puede(yo, s.permiso)).map((s) =>
     soloGuias && s.textoSoloGuias ? { ...s, texto: s.textoSoloGuias } : s,
   );
-  const grupos = [null, "Contenido", "Comunidad", "Ingresos", "Herramientas"] as const;
+  const grupos = [null, "Contenido", "Academia", "Comunidad", "Ingresos", "Herramientas"] as const;
   const activa = (s: Seccion) => (s.ruta ? ruta.startsWith(`/admin/${s.ruta}`) : ruta === "/admin");
   const cerrarEnCelular = () => window.innerWidth < 1024 && alCerrar();
   return (

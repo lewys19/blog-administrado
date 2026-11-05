@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { FormBoletin } from "@/components/blog/FormBoletin";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
+import { MapaVisitas } from "@/components/blog/MapaVisitas";
 import { cifra, pais } from "@/lib/formato";
 import type { ArticuloTarjeta, AutorFicha, Cuenta, Etiqueta, MasLeido } from "@/lib/tipos";
 import { rutaArticulo } from "@/lib/rutas";
@@ -207,24 +208,26 @@ function bandera(codigo: string): string {
 }
 
 /** ¿De dónde nos visitan? Países de los últimos 30 días, en porcentaje. */
-export function Paises({ cuentas }: { cuentas: Cuenta[] }) {
+export function Paises({ cuentas, mapa }: { cuentas: Cuenta[]; mapa: Cuenta[] }) {
   const total = cuentas.reduce((s, c) => s + c.visitas, 0);
   return (
-    <Caja titulo="¿De dónde nos visitan?">
+    <Caja className="p-4!">
+      <h2 className="mb-3 text-[0.8rem] font-bold">¿De dónde nos visitan?</h2>
+      <MapaVisitas cuentas={mapa} />
       {total ? (
-        <ul className="space-y-3">
+        <ul className="space-y-[0.6rem]">
           {cuentas.map((c) => {
             const parte = (c.visitas / total) * 100;
             return (
-              <li key={c.clave ?? "otros"} className="text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 text-lg leading-none" aria-hidden="true">
-                    {c.clave ? bandera(c.clave) : <Icono d={ICONOS.mundo} className="h-5 w-5 text-texto-2" />}
+              <li key={c.clave ?? "otros"} className="text-[0.7rem]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-5 text-[0.9rem] leading-none" aria-hidden="true">
+                    {c.clave ? bandera(c.clave) : <Icono d={ICONOS.mundo} className="h-4 w-4 text-texto-2" />}
                   </span>
                   <span className="flex-1">{c.clave ? pais(c.clave) : "Otros países"}</span>
                   <span className="font-semibold tabular-nums">{parte.toFixed(1)}%</span>
                 </div>
-                <div className="mt-1.5 ml-8 h-1.5 overflow-hidden rounded-full bg-marca-suave">
+                <div className="mt-1 ml-[1.6rem] h-[0.3rem] overflow-hidden rounded-full bg-marca-suave">
                   <div className="h-full rounded-full bg-marca" style={{ width: `${parte}%` }} />
                 </div>
               </li>
@@ -232,11 +235,11 @@ export function Paises({ cuentas }: { cuentas: Cuenta[] }) {
           })}
         </ul>
       ) : (
-        <p className="flex items-center gap-2 text-sm text-texto-2">
+        <p className="flex items-center gap-1.5 text-[0.7rem] text-texto-2">
           <Icono d={ICONOS.mundo} /> Aún no hay visitas este mes.
         </p>
       )}
-      <p className="mt-4 text-xs text-texto-2">Últimos 30 días · sin cookies ni datos personales.</p>
+      <p className="mt-3 text-[0.6rem] text-texto-2">Últimos 30 días · sin cookies ni datos personales.</p>
     </Caja>
   );
 }

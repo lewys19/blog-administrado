@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 
 import { Comentarios } from "@/components/blog/Comentarios";
 import { Compartir } from "@/components/blog/Compartir";
+import { Contenido } from "@/components/blog/Contenido";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { Avatar, Migas, Newsletter, Publicidad, Relacionados, SobreAutor } from "@/components/blog/Lateral";
 import { cifra, fechaLarga } from "@/lib/formato";
@@ -161,8 +162,7 @@ export async function VistaArticulo({ slug, tipo, tema }: { slug: string; tipo: 
           </nav>
         )}
 
-        {/* HTML generado y limpiado en el servidor (services/markdown.py): sin scripts ni atributos peligrosos. */}
-        <div className="contenido mt-8" dangerouslySetInnerHTML={{ __html: a.contenido_html }} />
+        <Contenido html={a.contenido_html} />
 
         {!!a.etiquetas.length && (
           <div className="mt-10 flex flex-wrap items-center gap-2">

@@ -1,3 +1,5 @@
+import type { Nivel, Tipo } from "@/lib/academia";
+
 // Tipos de lo que devuelve la API.
 
 /** Cuenta propia (GET /yo). */
@@ -116,6 +118,72 @@ export type EstadoArticulo = "borrador" | "revision" | "programado" | "publicado
 export interface Corto {
   nombre: string;
   slug: string;
+}
+
+export interface CategoriaAcademia {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion: string | null;
+  orden: number;
+  cursos: number; // publicados
+}
+
+export interface CursoTarjeta {
+  tipo: Tipo;
+  slug: string;
+  titulo: string;
+  descripcion: string;
+  nivel: Nivel;
+  horas: number | null;
+  precio_anterior: number | null;
+  precio: number;
+  enlace: string | null; // en lo público, solo el de los cursos gratis
+  portada: string | null;
+  categoria: { nombre: string; slug: string };
+}
+
+export interface CursoPublico extends CursoTarjeta {
+  temario: string[];
+  tecnologias: string[];
+  instalacion: string;
+}
+
+export interface CursoPanel extends CursoPublico {
+  id: number;
+  categoria_id: number;
+  destacado: boolean;
+  publicado: boolean;
+}
+
+export interface PaginaCursos {
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  cursos: CursoTarjeta[];
+}
+
+export type GrupoEtiqueta = "cursos" | "manuales" | "sistemas";
+
+export interface EtiquetaAcademia {
+  id: number;
+  nombre: string;
+  grupo: GrupoEtiqueta;
+  orden: number;
+}
+
+export interface AnuncioAcademia {
+  id: number;
+  titulo: string;
+  enlace: string;
+  activo: boolean;
+  imagen: string | null;
+}
+
+export interface LateralAcademia {
+  etiquetas: EtiquetaAcademia[];
+  anuncios: AnuncioAcademia[];
+  curso: CursoTarjeta | null;
 }
 
 export interface Categoria {

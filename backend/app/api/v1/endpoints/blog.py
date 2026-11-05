@@ -59,6 +59,12 @@ def mas_leidos(db: Db, almacen: AlmacenDep, limite: Annotated[int, Query(ge=1, l
     return articulos.mas_leidos(db, almacen, limite)
 
 
+@router.get("/paises/mapa", response_model=list[Cuenta])
+def paises_mapa(db: Db) -> list[Cuenta]:
+    """Solo conteos por país, para colorear el mapa."""
+    return estadisticas.paises_mapa(db)
+
+
 @router.get("/paises", response_model=list[Cuenta])
 def paises(db: Db) -> list[Cuenta]:
     """Para la portada: los 5 países con más visitas en 30 días y el resto como «otros» (clave nula)."""
