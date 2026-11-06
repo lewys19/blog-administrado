@@ -11,7 +11,7 @@ import { rutaArticulo } from "@/lib/rutas";
 
 const PAUSA = 7000;
 
-/** El gran recuadro de la portada: los destacados pasan solos (se detiene al pasar el mouse). */
+/** El gran recuadro de la portada: lo más nuevo pasa solo (se detiene al pasar el mouse). */
 export function Carrusel({ articulos }: { articulos: ArticuloTarjeta[] }) {
   const [actual, setActual] = useState(0);
   const [quieto, setQuieto] = useState(false);
@@ -28,7 +28,7 @@ export function Carrusel({ articulos }: { articulos: ArticuloTarjeta[] }) {
   return (
     <section
       aria-roledescription="carrusel"
-      aria-label="Artículos destacados"
+      aria-label="Artículos recientes"
       className="relative min-h-[360px] overflow-hidden rounded-2xl bg-lateral shadow-sm md:min-h-[400px]"
       onMouseEnter={() => setQuieto(true)}
       onMouseLeave={() => setQuieto(false)}
@@ -109,7 +109,7 @@ export function Carrusel({ articulos }: { articulos: ArticuloTarjeta[] }) {
                 key={a.slug}
                 type="button"
                 onClick={() => ir(i)}
-                aria-label={`Ver destacado ${i + 1}`}
+                aria-label={`Ver artículo ${i + 1}`}
                 aria-current={i === actual}
                 className={`h-2 rounded-full transition-all ${i === actual ? "w-6 bg-marca" : "w-2 bg-white/60 hover:bg-white"}`}
               />

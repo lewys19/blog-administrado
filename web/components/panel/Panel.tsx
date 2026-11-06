@@ -90,7 +90,15 @@ function FormIngreso() {
           </p>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-texto-2">Tu nombre</span>
-            <input name="nombre" autoComplete="name" required minLength={2} maxLength={80} autoFocus className={campo} />
+            <input
+              name="nombre"
+              autoComplete="name"
+              required
+              minLength={2}
+              maxLength={80}
+              autoFocus
+              className={campo}
+            />
           </label>
         </>
       )}
@@ -161,7 +169,22 @@ function PantallaIngreso({ aviso }: { aviso?: ReactNode }) {
   );
 }
 
-function Opcion({ s, activa, alElegir }: { s: Seccion; activa: boolean; alElegir: () => void }) {
+type AvisoFuentes = { nuevas: number; con_error: number };
+
+/** Lo lanza la pantalla de Fuentes para que el contador del menú se actualice. */
+export const EVENTO_FUENTES = "fuentes-cambiaron";
+
+function Opcion({
+  s,
+  activa,
+  alElegir,
+  aviso,
+}: {
+  s: Seccion;
+  activa: boolean;
+  alElegir: () => void;
+  aviso?: AvisoFuentes | null;
+}) {
   return (
     <Link
       href={`/admin${s.ruta ? `/${s.ruta}` : ""}`}
@@ -173,6 +196,16 @@ function Opcion({ s, activa, alElegir }: { s: Seccion; activa: boolean; alElegir
     >
       <Icono d={s.icono} />
       <span className="flex-1">{s.texto}</span>
+      {!!aviso?.con_error && (
+        <span className="rounded-full bg-error px-1.5 text-[10px] font-bold text-white" title="Fuentes con error">
+          !
+        </span>
+      )}
+      {!!aviso?.nuevas && (
+        <span className="rounded-full bg-marca px-1.5 text-[10px] font-bold text-sobre-marca" title="Noticias nuevas">
+          {aviso.nuevas > 99 ? "99+" : aviso.nuevas}
+        </span>
+      )}
       {s.sprint && (
         <span
           className="rounded-full bg-white/10 px-1.5 font-mono text-[10px] text-lateral-tenue"
@@ -194,6 +227,18 @@ function BarraLateral({ yo, abierta, alCerrar }: { yo: Yo; abierta: boolean; alC
   const grupos = [null, "Contenido", "Academia", "Comunidad", "Ingresos", "Herramientas"] as const;
   const activa = (s: Seccion) => (s.ruta ? ruta.startsWith(`/admin/${s.ruta}`) : ruta === "/admin");
   const cerrarEnCelular = () => window.innerWidth < 1024 && alCerrar();
+  const verFuentes = puede(yo, "fuentes.gestionar");
+  const [aviso, setAviso] = useState<AvisoFuentes | null>(null);
+  useEffect(() => {
+    if (!verFuentes) return;
+    const cargar = () =>
+      pedir<AvisoFuentes>("/panel/fuentes/aviso", { conSesion: true })
+        .then(setAviso)
+        .catch(() => {});
+    cargar();
+    window.addEventListener(EVENTO_FUENTES, cargar);
+    return () => window.removeEventListener(EVENTO_FUENTES, cargar);
+  }, [verFuentes, ruta]);
   return (
     <>
       {abierta && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={alCerrar} aria-hidden="true" />}
@@ -219,7 +264,13 @@ function BarraLateral({ yo, abierta, alCerrar }: { yo: Yo; abierta: boolean; alC
                   <p className="px-3 pb-1 font-mono text-[10px] tracking-widest text-lateral-tenue uppercase">{g}</p>
                 )}
                 {items.map((s) => (
-                  <Opcion key={s.ruta} s={s} activa={activa(s)} alElegir={cerrarEnCelular} />
+                  <Opcion
+                    key={s.ruta}
+                    s={s}
+                    activa={activa(s)}
+                    alElegir={cerrarEnCelular}
+                    aviso={s.ruta === "fuentes" ? aviso : null}
+                  />
                 ))}
               </div>
             );

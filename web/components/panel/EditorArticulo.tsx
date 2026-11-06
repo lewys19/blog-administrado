@@ -3,6 +3,7 @@
 // Editor de artículos: Markdown con barra de formato y vista previa, portada, categoría y etiquetas,
 // estado según el rol (borrador, revisión, programado, publicado) y la caja de SEO con su vista en Google.
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { puede, usePanel } from "@/components/panel/Panel";
@@ -60,6 +61,7 @@ const NUEVA_CATEGORIA = "nueva";
 
 export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) {
   const yo = usePanel();
+  const router = useRouter();
   const publica = puede(yo, "articulos.publicar");
   // Colaborador: solo guías, y las publica al instante.
   const soloGuias = !puede(yo, "articulos.escribir") && puede(yo, "guias.escribir");
@@ -86,6 +88,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   const [metaTitulo, setMetaTitulo] = useState(inicial?.meta_titulo ?? "");
   const [metaDescripcion, setMetaDescripcion] = useState(inicial?.meta_descripcion ?? "");
   const [palabras, setPalabras] = useState(inicial?.palabras_clave ?? "");
+  const [fuenteNombre, setFuenteNombre] = useState(inicial?.fuente_nombre ?? "");
+  const [fuenteUrl, setFuenteUrl] = useState(inicial?.fuente_url ?? "");
   const [pestana, setPestana] = useState<"escribir" | "ver">("escribir");
   const [previa, setPrevia] = useState<{
     html: string;
@@ -135,6 +139,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
       meta_titulo: metaTitulo || null,
       meta_descripcion: metaDescripcion || null,
       palabras_clave: palabras || null,
+      fuente_nombre: fuenteNombre || null,
+      fuente_url: fuenteUrl || null,
     };
   }
 
@@ -235,6 +241,7 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     if (estado === "programado" && !programarPara) return setError("Elige la fecha y hora en que debe publicarse.");
     setGuardando(true);
     guardadoComo.current = huella;
+    const yaPublicado = a?.estado === "publicado" || a?.estado === "programado";
     try {
       const guardado = await enviar(cuerpoDe(estado));
       setSlugPropio(guardado.slug);
@@ -246,6 +253,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
         publicado: "¡Publicado! Ya se ve en el blog.",
       };
       setOk(mensajes[estado]);
+      // Recién publicado: se vuelve a la lista y «Nuevo artículo» abre limpio.
+      if ((estado === "publicado" || estado === "programado") && !yaPublicado) router.push("/admin/articulos");
     } catch (err) {
       guardadoComo.current = null;
       setError(err instanceof ErrorApi ? err.message : "No se pudo guardar.");
@@ -595,6 +604,27 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
               value={etiquetas}
               onChange={(e) => setEtiquetas(e.target.value)}
               placeholder="docker, postgresql"
+              className={ENTRADA}
+            />
+          </Campo>
+          <Campo etiqueta="Fuente original (opcional)" ayuda="Sale al final del artículo con su enlace.">
+            <input
+              id="articulo-fuente-nombre"
+              aria-label="Nombre de la fuente"
+              maxLength={80}
+              value={fuenteNombre}
+              onChange={(e) => setFuenteNombre(e.target.value)}
+              placeholder="Xataka"
+              className={`${ENTRADA} mb-2`}
+            />
+            <input
+              id="articulo-fuente-url"
+              aria-label="Enlace de la fuente"
+              type="url"
+              maxLength={700}
+              value={fuenteUrl}
+              onChange={(e) => setFuenteUrl(e.target.value)}
+              placeholder="https://…"
               className={ENTRADA}
             />
           </Campo>

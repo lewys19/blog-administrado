@@ -5,7 +5,7 @@ import { Carrusel } from "@/components/blog/Carrusel";
 import { MasLeidos, Newsletter, Paises, Publicidad, TagsPopulares } from "@/components/blog/Lateral";
 import { Tarjeta } from "@/components/Tarjetas";
 import { obtener } from "@/lib/servidor";
-import type { ArticuloTarjeta, Cuenta, Etiqueta, MasLeido, PaginaArticulos } from "@/lib/tipos";
+import type { Cuenta, Etiqueta, MasLeido, PaginaArticulos } from "@/lib/tipos";
 
 // Cada fila es: contenido a la izquierda + una caja a la derecha (como en el modelo).
 const fila = "grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]";
@@ -23,24 +23,20 @@ function Titulo({ children, href }: { children: ReactNode; href?: string }) {
   );
 }
 
-/** Hasta 4 para el carrusel: los marcados como destacados y, si no hay, los más recientes.
- *  «Últimos artículos» siempre muestra los 8 más nuevos (aunque alguno ya esté arriba). */
-function repartir(articulos: ArticuloTarjeta[]) {
-  const marcados = articulos.filter((a) => a.destacado).slice(0, 4);
-  const carrusel = marcados.length ? marcados : articulos.slice(0, 3);
-  const resto = articulos.filter((a) => !carrusel.includes(a));
-  return { carrusel, destacados: resto.slice(0, 2), ultimos: articulos.slice(0, 8) };
-}
+const MAX_DESTACADOS = 4;
 
 export default async function Portada() {
-  const [pagina, etiquetas, leidos, paises, mapa] = await Promise.all([
-    obtener<PaginaArticulos>("/blog/articulos?por_pagina=16"),
+  const [pagina, marcados, etiquetas, leidos, paises, mapa] = await Promise.all([
+    obtener<PaginaArticulos>("/blog/articulos?por_pagina=8"),
+    obtener<PaginaArticulos>(`/blog/articulos?destacado=true&por_pagina=${MAX_DESTACADOS}`),
     obtener<Etiqueta[]>("/blog/etiquetas"),
     obtener<MasLeido[]>("/blog/mas-leidos?limite=5"),
     obtener<Cuenta[]>("/blog/paises"),
     obtener<Cuenta[]>("/blog/paises/mapa"),
   ]);
-  const { carrusel, destacados, ultimos } = repartir(pagina?.articulos ?? []);
+  const ultimos = pagina?.articulos ?? [];
+  const carrusel = ultimos.slice(0, 3); // lo más nuevo pasa arriba
+  const destacados = marcados?.articulos ?? []; // solo lo marcado con «Destacado en la portada»
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-10 px-4 py-6">
@@ -60,16 +56,20 @@ export default async function Portada() {
         </aside>
       </div>
 
-      {!!destacados.length && (
+      {!!ultimos.length && (
         <div className={fila}>
           <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_280px]">
             <div className="md:col-span-2 xl:col-span-2">
-              <Titulo>Artículos destacados</Titulo>
-              <div className="grid gap-6 sm:grid-cols-2">
-                {destacados.map((a) => (
-                  <Tarjeta key={a.slug} a={a} />
-                ))}
-              </div>
+              {!!destacados.length && (
+                <>
+                  <Titulo>Artículos destacados</Titulo>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {destacados.map((a) => (
+                      <Tarjeta key={a.slug} a={a} />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
             <div className="md:col-span-2 xl:col-span-1 xl:pt-11">
               <MasLeidos articulos={leidos ?? []} />

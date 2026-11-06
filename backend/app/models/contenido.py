@@ -108,6 +108,8 @@ class Articulo(Base):
     meta_titulo: Mapped[str | None] = mapped_column(String(70))
     meta_descripcion: Mapped[str | None] = mapped_column(String(170))
     palabras_clave: Mapped[str | None] = mapped_column(String(200))
+    fuente_nombre: Mapped[str | None] = mapped_column(String(80))  # a quién se le da el crédito
+    fuente_url: Mapped[str | None] = mapped_column(String(700))
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     actualizado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -15,6 +15,7 @@ from app.models.academia import (
 from app.models.comentario import Comentario, EstadoComentario
 from app.models.contenido import Articulo, Categoria, EstadoArticulo, Etiqueta, TemaGuia, TipoArticulo, articulo_etiqueta
 from app.models.estadistica import Visita
+from app.models.fuentes import EstadoNoticia, Fuente, NoticiaFuente
 from app.models.newsletter import Envio, EstadoEnvio, EstadoSuscriptor, Suscriptor
 from app.models.usuario import Rol, TokenRefresco, Usuario
 
@@ -31,10 +32,13 @@ __all__ = [
     "EstadoSuscriptor",
     "EstadoArticulo",
     "Etiqueta",
+    "EstadoNoticia",
     "EstadoSolicitud",
     "EtiquetaAcademia",
     "GrupoEtiqueta",
     "NivelCurso",
+    "Fuente",
+    "NoticiaFuente",
     "PromocionAcademia",
     "SolicitudCurso",
     "TemaGuia",

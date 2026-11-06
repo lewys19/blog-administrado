@@ -90,6 +90,8 @@ class ArticuloEditor(ArticuloFila):
     meta_titulo: str | None
     meta_descripcion: str | None
     palabras_clave: str | None
+    fuente_nombre: str | None
+    fuente_url: str | None
 
 
 class ArticuloIn(BaseModel):
@@ -107,6 +109,15 @@ class ArticuloIn(BaseModel):
     meta_titulo: Annotated[Texto, Field(max_length=70)] | None = None
     meta_descripcion: Annotated[Texto, Field(max_length=170)] | None = None
     palabras_clave: Annotated[Texto, Field(max_length=200)] | None = None
+    fuente_nombre: Annotated[Texto, Field(max_length=80)] | None = None
+    fuente_url: Annotated[Texto, Field(max_length=700)] | None = None
+
+    @field_validator("fuente_url")
+    @classmethod
+    def _fuente(cls, valor: str | None) -> str | None:
+        if valor and not valor.startswith(("https://", "http://")):
+            raise ValueError("El enlace de la fuente debe empezar con https://")
+        return valor or None
 
     @field_validator("slug")
     @classmethod
@@ -184,6 +195,8 @@ class ArticuloPublico(ArticuloTarjeta):
     meta_titulo: str  # ya resuelto: el propio o el título
     meta_descripcion: str  # el propio, el resumen o el inicio del texto
     palabras_clave: str | None
+    fuente_nombre: str | None
+    fuente_url: str | None
     relacionados: list[ArticuloTarjeta]
 
 

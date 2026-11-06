@@ -84,6 +84,7 @@ ModerarComentarios = Annotated[Usuario, Depends(requiere_permiso("comentarios.mo
 GestionarNewsletter = Annotated[Usuario, Depends(requiere_permiso("newsletter.gestionar"))]
 GestionarAcademia = Annotated[Usuario, Depends(requiere_permiso("academia.gestionar"))]
 UsarIA = Annotated[Usuario, Depends(requiere_permiso("ia.usar"))]
+GestionarFuentes = Annotated[Usuario, Depends(requiere_permiso("fuentes.gestionar"))]
 
 
 def ip_cliente(request: Request) -> str:

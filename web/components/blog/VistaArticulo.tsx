@@ -163,6 +163,19 @@ export async function VistaArticulo({ slug, tipo, tema }: { slug: string; tipo: 
         )}
 
         <Contenido html={a.contenido_html} />
+        {a.fuente_url && (
+          <p className="mt-8 rounded-lg border border-borde bg-pagina px-4 py-3 text-sm text-texto-2">
+            Fuente:{" "}
+            <a
+              href={a.fuente_url}
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+              className="font-medium text-marca-fuerte hover:underline"
+            >
+              {a.fuente_nombre || a.fuente_url}
+            </a>
+          </p>
+        )}
 
         {!!a.etiquetas.length && (
           <div className="mt-10 flex flex-wrap items-center gap-2">

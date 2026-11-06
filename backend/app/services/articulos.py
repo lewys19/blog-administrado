@@ -93,6 +93,7 @@ def _editor(a: Articulo, almacen: Almacen) -> ArticuloEditor:
         resumen=a.resumen, contenido=a.contenido, imagen=almacen.url(a.imagen_clave) if a.imagen_clave else None,
         categoria_id=a.categoria_id, etiquetas=[e.nombre for e in a.etiquetas], minutos_lectura=a.minutos_lectura,
         meta_titulo=a.meta_titulo, meta_descripcion=a.meta_descripcion, palabras_clave=a.palabras_clave,
+        fuente_nombre=a.fuente_nombre, fuente_url=a.fuente_url,
     )  # fmt: skip
 
 
@@ -244,6 +245,8 @@ def _aplicar(db: Session, quien: Usuario, a: Articulo, datos: ArticuloIn) -> Non
     a.meta_titulo = datos.meta_titulo or None
     a.meta_descripcion = datos.meta_descripcion or None
     a.palabras_clave = datos.palabras_clave or None
+    a.fuente_nombre = datos.fuente_nombre or None
+    a.fuente_url = datos.fuente_url
     a.destacado = datos.destacado
     if datos.estado == EstadoArticulo.PROGRAMADO:
         a.publicado_en = datos.publicado_en
@@ -333,9 +336,12 @@ def listar_publicos(
     q: str | None = None,
     tipo: str | None = None,
     tema: str | None = None,
+    destacado: bool = False,
 ) -> PaginaArticulos:
     """Lo más nuevo primero; con `q`, lo más relevante primero (búsqueda en español)."""
     consulta = select(Articulo).where(visible())
+    if destacado:
+        consulta = consulta.where(Articulo.destacado.is_(True))
     if tipo:
         consulta = consulta.where(Articulo.tipo == tipo)
     if tema:
@@ -421,6 +427,8 @@ def ver_publico(db: Session, almacen: Almacen, slug: str) -> ArticuloPublico:
         meta_titulo=a.meta_titulo or a.titulo,
         meta_descripcion=_descripcion(a),
         palabras_clave=a.palabras_clave,
+        fuente_nombre=a.fuente_nombre,
+        fuente_url=a.fuente_url,
         relacionados=_relacionados(db, almacen, a),
     )
 

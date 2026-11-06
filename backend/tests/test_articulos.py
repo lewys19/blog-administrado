@@ -148,6 +148,14 @@ def test_markdown_conserva_h1(client: TestClient, registrar: Callable[..., dict]
     assert "<h1" in r.json()["html"]
 
 
+def test_filtro_de_destacados(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    client.post(f"{PANEL}/articulos", json=articulo(titulo="Marcado", estado="publicado", destacado=True), headers=h)
+    client.post(f"{PANEL}/articulos", json=articulo(titulo="Normal", estado="publicado"), headers=h)
+    lista = client.get(f"{BLOG}/articulos?destacado=true").json()["articulos"]
+    assert [a["titulo"] for a in lista] == ["Marcado"]
+
+
 def test_invitado_y_lector(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
     lector = registrar("lector@example.com", "Lector")
     assert client.post(f"{PANEL}/articulos", json=articulo(), headers={"Authorization": f"Bearer {lector['token_acceso']}"}).status_code == 403

@@ -17,6 +17,8 @@ pygments==2.21.0
 nh3==0.3.7
 # Analítica: país de la visita con la base gratuita de DB-IP (sin guardar la IP).
 maxminddb==3.2.0
+# Fuentes de noticias por RSS
+feedparser==6.0.14
 # IA: borradores de artículos con Claude (clave en ANTHROPIC_API_KEY).
 anthropic==2.3.0
 

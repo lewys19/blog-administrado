@@ -33,6 +33,14 @@ export const SECCIONES: Seccion[] = [
       "Escribir, revisar y publicar artículos: título, contenido, imagen, slug, categoría, etiquetas, estado y autor.",
   },
   {
+    ruta: "fuentes",
+    texto: "Fuentes",
+    grupo: "Contenido",
+    icono: "M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M6 19a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
+    permiso: "fuentes.gestionar",
+    descripcion: "Noticias de sitios externos por RSS: revisa la bandeja y conviértelas en borradores.",
+  },
+  {
     ruta: "categorias",
     texto: "Categorías",
     grupo: "Contenido",

@@ -26,6 +26,7 @@ PERMISOS: dict[str, str] = {
     # Herramientas
     "estadisticas.ver": "Ver estadísticas de visitas",
     "ia.usar": "Usar las herramientas de IA",
+    "fuentes.gestionar": "Administrar las fuentes de noticias y su bandeja",
     "configuracion.gestionar": "Cambiar la configuración del sitio",
 }
 

@@ -248,6 +248,8 @@ export interface ArticuloEditor extends ArticuloFila {
   meta_titulo: string | null;
   meta_descripcion: string | null;
   palabras_clave: string | null;
+  fuente_nombre: string | null;
+  fuente_url: string | null;
 }
 
 export interface ArticuloTarjeta {
@@ -297,6 +299,8 @@ export interface ArticuloPublico extends ArticuloTarjeta {
   meta_titulo: string;
   meta_descripcion: string;
   palabras_clave: string | null;
+  fuente_nombre: string | null;
+  fuente_url: string | null;
   relacionados: ArticuloTarjeta[];
 }
 

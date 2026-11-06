@@ -44,8 +44,11 @@ def listar(
     q: Annotated[str | None, Query(max_length=100, description="Búsqueda en español")] = None,
     tipo: Annotated[TipoArticulo | None, Query(description="noticia (/blog) o guia (/guias)")] = None,
     tema: Slug = None,
+    destacado: Annotated[bool, Query(description="Solo los marcados como destacados")] = False,
 ) -> PaginaArticulos:
-    return articulos.listar_publicos(db, almacen, pagina, por_pagina, categoria, etiqueta, autor, q, tipo, tema)
+    return articulos.listar_publicos(
+        db, almacen, pagina, por_pagina, categoria, etiqueta, autor, q, tipo, tema, destacado
+    )
 
 
 @router.get("/articulos/{slug}", response_model=ArticuloPublico)
