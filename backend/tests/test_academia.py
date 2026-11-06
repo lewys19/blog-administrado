@@ -221,3 +221,70 @@ def test_promociones(client: TestClient, registrar: Callable[..., dict], db: Ses
     assert client.delete(f"{PANEL}/promociones/{p['id']}", headers=h).status_code == 204
     assert client.delete(f"{PANEL}/promociones/{p['id']}", headers=h).status_code == 404
     assert client.post(f"{PANEL}/promociones", json=pack, headers=dar_rol(db, registrar("b@example.com"), EDITOR)).status_code == 403
+
+
+def _curso_de_pago(client: TestClient, h: dict, **cambios: object) -> dict:
+    datos = curso(enlace="https://drive.google.com/material") | cambios
+    return client.post(f"{PANEL}/cursos", json=datos, headers=h).json()
+
+
+def test_compra_con_codigo_y_aprobacion(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), ADMINISTRADOR)
+    c = _curso_de_pago(client, h)
+    assert client.get(f"{PUBLICA}/cursos/{c['slug']}").json()["enlace"] is None  # no se filtra sin pagar
+
+    r = client.post(f"{PUBLICA}/cursos/{c['slug']}/solicitudes", json={"nombre": "Ana", "whatsapp": "+51 999 888 777"})
+    assert r.status_code == 201
+    codigo = r.json()["codigo"]
+
+    espera = client.post(f"{PUBLICA}/acceso", json={"codigo": codigo}).json()
+    assert espera == {"estado": "pendiente", "enlace": None}
+
+    lista = client.get(f"{PANEL}/solicitudes", headers=h).json()
+    assert lista["pendientes"] == 1 and lista["solicitudes"][0]["codigo"] == codigo
+    s = lista["solicitudes"][0]["id"]
+    assert client.put(f"{PANEL}/solicitudes/{s}", json={"estado": "aprobada"}, headers=h).status_code == 200
+
+    abierto = client.post(f"{PUBLICA}/acceso", json={"codigo": codigo.lower()}).json()
+    assert abierto == {"estado": "aprobada", "enlace": "https://drive.google.com/material"}
+    resumen = client.get(f"{PANEL}/solicitudes", headers=h).json()
+    assert (resumen["aprobadas"], resumen["entregadas"], resumen["pendientes"]) == (1, 1, 0)
+
+    assert client.put(f"{PANEL}/solicitudes/{s}", json={"estado": "rechazada"}, headers=h).status_code == 200
+    assert client.post(f"{PUBLICA}/acceso", json={"codigo": codigo}).json()["enlace"] is None
+
+
+def test_solicitudes_reglas(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), ADMINISTRADOR)
+    gratis = _curso_de_pago(client, h, titulo="Curso gratis", precio="0", precio_anterior=None)
+    datos = {"nombre": "Ana", "whatsapp": "999888777"}
+    assert client.post(f"{PUBLICA}/cursos/{gratis['slug']}/solicitudes", json=datos).status_code == 400
+    assert client.post(f"{PUBLICA}/cursos/no-existe/solicitudes", json=datos).status_code == 404
+    assert client.post(f"{PUBLICA}/acceso", json={"codigo": "ZC-AAAA-BBBB"}).status_code == 404
+
+    sin_enlace = client.post(f"{PANEL}/cursos", json=curso(titulo="Sin enlace"), headers=h).json()
+    client.post(f"{PUBLICA}/cursos/{sin_enlace['slug']}/solicitudes", json=datos)
+    s = client.get(f"{PANEL}/solicitudes", headers=h).json()["solicitudes"][0]["id"]
+    assert client.put(f"{PANEL}/solicitudes/{s}", json={"estado": "aprobada"}, headers=h).status_code == 400
+
+    assert client.get(f"{PANEL}/solicitudes").status_code == 401
+    editor = dar_rol(db, registrar("ed@example.com", "Ed"), EDITOR)
+    assert client.get(f"{PANEL}/solicitudes", headers=editor).status_code == 403
+
+
+def test_limites_contra_fuerza_bruta(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), ADMINISTRADOR)
+    c = _curso_de_pago(client, h)
+    datos = {"nombre": "Ana", "whatsapp": "999888777"}
+    respuestas = [client.post(f"{PUBLICA}/cursos/{c['slug']}/solicitudes", json=datos).status_code for _ in range(6)]
+    assert respuestas == [201] * 5 + [429]
+    intentos = [client.post(f"{PUBLICA}/acceso", json={"codigo": "ZC-AAAA-BBBB"}).status_code for _ in range(21)]
+    assert intentos == [404] * 20 + [429]
+
+
+def test_borrar_el_curso_conserva_la_venta(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), ADMINISTRADOR)
+    c = _curso_de_pago(client, h)
+    client.post(f"{PUBLICA}/cursos/{c['slug']}/solicitudes", json={"nombre": "Ana", "whatsapp": "999888777"})
+    assert client.delete(f"{PANEL}/cursos/{c['id']}", headers=h).status_code == 204
+    assert client.get(f"{PANEL}/solicitudes", headers=h).json()["solicitudes"][0]["curso_titulo"] == c["titulo"]

@@ -106,6 +106,14 @@ summary {
 .contenido > * + * {
   margin-top: 1.15em;
 }
+.contenido h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2.2em;
+  letter-spacing: -0.015em;
+  scroll-margin-top: 5rem;
+}
 .contenido h2 {
   font-size: 1.55rem;
   font-weight: 700;

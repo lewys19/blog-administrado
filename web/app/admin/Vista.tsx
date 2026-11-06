@@ -93,7 +93,7 @@ export function Dashboard() {
         </div>
         <Link
           href="/admin/articulos/nuevo"
-          className="rounded-full bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo"
+          className="rounded-lg bg-marca px-5 py-2.5 font-bold text-sobre-marca shadow-md transition-colors hover:bg-marca-fuerte"
         >
           + Nuevo artículo
         </Link>
@@ -116,7 +116,11 @@ export function Dashboard() {
               </Link>
             </p>
           </div>
-          {v ? <Columnas puntos={v.por_mes} alto={180} /> : <div className="h-[220px] animate-pulse rounded-xl bg-fondo" />}
+          {v ? (
+            <Columnas puntos={v.por_mes} alto={180} />
+          ) : (
+            <div className="h-[220px] animate-pulse rounded-xl bg-fondo" />
+          )}
         </section>
       )}
 

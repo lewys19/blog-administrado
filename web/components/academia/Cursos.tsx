@@ -1,9 +1,8 @@
-// Piezas públicas de la Academia Digital: precio, botón de compra y tarjeta de curso.
+// Piezas públicas de la Academia Digital: precio y tarjeta de curso.
 import Link from "next/link";
 
 import { ICONOS, Icono, IconoCategoria } from "@/components/blog/Iconos";
-import { enlaceWhatsapp, NIVELES, precioTexto, rutaCurso } from "@/lib/academia";
-import { WHATSAPP_ACADEMIA } from "@/lib/sitio";
+import { NIVELES, precioTexto, rutaCurso } from "@/lib/academia";
 import type { CursoTarjeta } from "@/lib/tipos";
 
 export function Precio({ curso, grande = false }: { curso: CursoTarjeta; grande?: boolean }) {
@@ -20,21 +19,6 @@ export function Precio({ curso, grande = false }: { curso: CursoTarjeta; grande?
         {precioTexto(curso.precio)}
       </span>
     </p>
-  );
-}
-
-/** Curso gratis: lleva a su material. Curso de pago: abre WhatsApp con el mensaje escrito. */
-export function BotonCurso({ curso }: { curso: CursoTarjeta }) {
-  return (
-    <a
-      href={curso.enlace ?? enlaceWhatsapp(WHATSAPP_ACADEMIA, curso)}
-      target="_blank"
-      rel="noreferrer"
-      className="relative z-10 flex items-center justify-center gap-2 rounded-lg bg-marca px-4 py-2.5 text-sm font-semibold text-white hover:bg-marca-fuerte"
-    >
-      <Icono d={curso.enlace ? ICONOS.enlace : ICONOS.whatsapp} className="h-4 w-4" />
-      {curso.enlace ? "Acceder gratis" : "Comprar por WhatsApp"}
-    </a>
   );
 }
 
@@ -67,7 +51,7 @@ export function TarjetaCurso({ curso }: { curso: CursoTarjeta }) {
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="leading-snug font-bold text-balance">
-          {/* Toda la tarjeta lleva al curso; el botón de WhatsApp queda por encima. */}
+          {/* Toda la tarjeta lleva al curso. */}
           <Link href={rutaCurso(curso)} className="after:absolute after:inset-0 group-hover:text-marca-fuerte">
             {curso.titulo}
           </Link>
@@ -75,7 +59,12 @@ export function TarjetaCurso({ curso }: { curso: CursoTarjeta }) {
         <p className="line-clamp-2 text-sm text-texto-2">{curso.descripcion}</p>
         <div className="mt-auto space-y-3 pt-1">
           <Precio curso={curso} />
-          <BotonCurso curso={curso} />
+          <Link
+            href={rutaCurso(curso)}
+            className="relative z-10 flex items-center justify-center rounded-lg bg-marca px-4 py-2.5 text-sm font-semibold text-sobre-marca hover:bg-marca-fuerte"
+          >
+            Ver detalles
+          </Link>
         </div>
       </div>
     </article>

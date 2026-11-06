@@ -97,6 +97,14 @@ export const SECCIONES: Seccion[] = [
     descripcion: "Packs con precio especial, por ejemplo 2 cursos a $10.",
   },
   {
+    ruta: "academia/solicitudes",
+    texto: "Solicitudes",
+    grupo: "Academia",
+    icono: "M9 12l2 2 4-4M5 3h14v18H5z",
+    permiso: "academia.gestionar",
+    descripcion: "Códigos de compra: aprueba los pagos y mira cuántos cursos se entregaron.",
+  },
+  {
     ruta: "academia/categorias",
     texto: "Categorías de academia",
     grupo: "Academia",

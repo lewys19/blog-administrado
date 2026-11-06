@@ -3,12 +3,14 @@
 // Editor de artículos: Markdown con barra de formato y vista previa, portada, categoría y etiquetas,
 // estado según el rol (borrador, revisión, programado, publicado) y la caja de SEO con su vista en Google.
 import Link from "next/link";
-import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { puede, usePanel } from "@/components/panel/Panel";
 import { Aviso, Caja } from "@/components/panel/Tabla";
 import { InsertarImagen } from "@/components/panel/InsertarImagen";
+import { NuevaCategoria } from "@/components/panel/NuevaCategoria";
 import { ErrorApi, pedir } from "@/lib/api";
+import { aplicarFormato, type Edicion, FORMATOS, insertarBloque } from "@/lib/editor";
 import { GenerarConIA } from "@/components/panel/GenerarConIA";
 import type { ArticuloEditor, Categoria, EstadoArticulo, TipoArticulo } from "@/lib/tipos";
 import { rutaArticulo } from "@/lib/rutas";
@@ -54,28 +56,7 @@ function Campo({ etiqueta, ayuda, children }: { etiqueta: string; ayuda?: ReactN
   );
 }
 
-// Botones de formato: envuelven la selección del texto con la sintaxis de Markdown.
-const FORMATOS: {
-  titulo: string;
-  icono: string;
-  antes: string;
-  despues?: string;
-  linea?: boolean;
-}[] = [
-  { titulo: "Subtítulo", icono: "H2", antes: "## ", linea: true },
-  { titulo: "Negrita", icono: "B", antes: "**", despues: "**" },
-  { titulo: "Cursiva", icono: "I", antes: "_", despues: "_" },
-  { titulo: "Código en línea", icono: "`", antes: "`", despues: "`" },
-  {
-    titulo: "Bloque de código",
-    icono: "{ }",
-    antes: "\n```python\n",
-    despues: "\n```\n",
-  },
-  { titulo: "Enlace", icono: "🔗", antes: "[", despues: "](https://)" },
-  { titulo: "Lista", icono: "•", antes: "- ", linea: true },
-  { titulo: "Cita", icono: "❝", antes: "> ", linea: true },
-];
+const NUEVA_CATEGORIA = "nueva";
 
 export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) {
   const yo = usePanel();
@@ -83,6 +64,11 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   // Colaborador: solo guías, y las publica al instante.
   const soloGuias = !puede(yo, "articulos.escribir") && puede(yo, "guias.escribir");
   const area = useRef<HTMLTextAreaElement>(null);
+  const articulo = useRef<ArticuloEditor | null>(inicial);
+  const cola = useRef<Promise<unknown>>(Promise.resolve());
+  const guardadoComo = useRef<string | null | undefined>(undefined);
+  const cursor = useRef<{ inicio: number; fin: number; scroll: number } | null>(null);
+  const alSalir = useRef<() => void>(() => {});
 
   const [a, setA] = useState<ArticuloEditor | null>(inicial);
   const [titulo, setTitulo] = useState(inicial?.titulo ?? "");
@@ -111,6 +97,8 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   const [guardando, setGuardando] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [autoguardado, setAutoguardado] = useState<"guardando" | "guardado" | "error" | null>(null);
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
 
   useEffect(() => {
     pedir<Categoria[]>("/panel/categorias", { conSesion: true })
@@ -127,6 +115,67 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   }, [inicial?.tema?.slug]);
 
   const slugFinal = slugEditado ? slug(slugPropio) : slug(titulo);
+
+  function cuerpoDe(estado: EstadoArticulo) {
+    return {
+      titulo,
+      slug: slugFinal || null,
+      tipo,
+      tema_id: tipo === "guia" && temaId ? Number(temaId) : null,
+      resumen: resumen || null,
+      contenido,
+      categoria_id: categoriaId ? Number(categoriaId) : null,
+      etiquetas: etiquetas
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean),
+      estado,
+      publicado_en: estado === "programado" ? new Date(programarPara).toISOString() : null,
+      destacado,
+      meta_titulo: metaTitulo || null,
+      meta_descripcion: metaDescripcion || null,
+      palabras_clave: palabras || null,
+    };
+  }
+
+  // Autoguardado: solo borradores, para no sacar a la luz cambios a medias de algo publicado.
+  const cuerpoBorrador = {
+    ...cuerpoDe("borrador"),
+    titulo: titulo.trim().length >= 3 ? titulo : "Sin título",
+    slug: slugEditado ? slugFinal || null : null,
+  };
+  const huella = JSON.stringify(cuerpoBorrador);
+  const hayAlgo = !!(titulo.trim() || contenido.trim() || resumen.trim());
+  const esBorrador = (a?.estado ?? "borrador") === "borrador";
+
+  function autoguardar() {
+    if (!hayAlgo || !esBorrador || huella === guardadoComo.current) return;
+    guardadoComo.current = huella; // si falla no se reintenta en bucle: espera al siguiente cambio
+    setAutoguardado("guardando");
+    enviar(cuerpoBorrador)
+      .then(() => setAutoguardado("guardado"))
+      .catch(() => setAutoguardado("error"));
+  }
+
+  useEffect(() => {
+    if (guardadoComo.current === undefined) guardadoComo.current = inicial ? huella : null; // lo abierto ya está guardado
+    alSalir.current = autoguardar; // al salir del editor se guarda lo que falte
+    if (guardando) return;
+    const espera = setTimeout(autoguardar, 2500);
+    return () => clearTimeout(espera);
+  });
+  useEffect(() => () => alSalir.current(), []);
+
+  // El cursor se coloca después de que el texto nuevo ya está en pantalla.
+  useLayoutEffect(() => {
+    const t = area.current;
+    const c = cursor.current;
+    if (!t || !c) return;
+    cursor.current = null;
+    t.focus({ preventScroll: true });
+    t.setSelectionRange(c.inicio, c.fin);
+    t.scrollTop = c.scroll;
+  }, [contenido]);
 
   async function verPrevia() {
     setPestana("ver");
@@ -147,34 +196,35 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     }
   }
 
-  function formatear(f: (typeof FORMATOS)[number]) {
+  function aplicar(cambio: (texto: string, i: number, j: number) => Edicion) {
     const t = area.current;
     if (!t) return;
-    const { selectionStart: i, selectionEnd: j } = t;
-    const elegido = contenido.slice(i, j);
-    const inicioLinea = f.linea ? contenido.lastIndexOf("\n", i - 1) + 1 : i;
-    const nuevo = f.linea
-      ? contenido.slice(0, inicioLinea) + f.antes + contenido.slice(inicioLinea)
-      : contenido.slice(0, i) + f.antes + elegido + (f.despues ?? "") + contenido.slice(j);
-    setContenido(nuevo);
-    requestAnimationFrame(() => {
-      t.focus();
-      const cursor = f.linea ? j + f.antes.length : i + f.antes.length + elegido.length;
-      t.setSelectionRange(cursor, cursor);
-    });
+    const r = cambio(contenido, t.selectionStart, t.selectionEnd);
+    cursor.current = { inicio: r.inicio, fin: r.fin, scroll: t.scrollTop };
+    setContenido(r.texto);
   }
 
-  /** Pone el texto donde está el cursor, en una línea propia. */
-  function insertar(texto: string) {
-    const t = area.current;
-    const i = t?.selectionStart ?? contenido.length;
-    const j = t?.selectionEnd ?? contenido.length;
-    const bloque = `\n\n${texto}\n\n`;
-    setContenido(contenido.slice(0, i) + bloque + contenido.slice(j));
-    requestAnimationFrame(() => {
-      t?.focus();
-      t?.setSelectionRange(i + bloque.length, i + bloque.length);
-    });
+  /** Uno a la vez y en orden: el autoguardado y un clic en Publicar nunca crean dos artículos. */
+  function enviar(cuerpo: ReturnType<typeof cuerpoDe>): Promise<ArticuloEditor> {
+    const tarea = cola.current
+      .catch(() => {})
+      .then(async () => {
+        const actual = articulo.current;
+        const guardado = await pedir<ArticuloEditor>(actual ? `/panel/articulos/${actual.id}` : "/panel/articulos", {
+          metodo: actual ? "PUT" : "POST",
+          conSesion: true,
+          cuerpo,
+        });
+        articulo.current = guardado;
+        setA(guardado);
+        // La dirección pasa a /admin/articulos/<id> sin volver a montar el editor (no se pierde el aviso).
+        if (!actual && window.location.pathname.endsWith("/articulos/nuevo")) {
+          window.history.replaceState(null, "", `/admin/articulos/${guardado.id}`);
+        }
+        return guardado;
+      });
+    cola.current = tarea;
+    return tarea;
   }
 
   async function guardar(estado: EstadoArticulo, e?: FormEvent) {
@@ -184,44 +234,20 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
     if (titulo.trim().length < 3) return setError("Escribe un título de al menos 3 letras.");
     if (estado === "programado" && !programarPara) return setError("Elige la fecha y hora en que debe publicarse.");
     setGuardando(true);
-    const cuerpo = {
-      titulo,
-      slug: slugFinal || null,
-      tipo,
-      tema_id: tipo === "guia" && temaId ? Number(temaId) : null,
-      resumen: resumen || null,
-      contenido,
-      categoria_id: categoriaId ? Number(categoriaId) : null,
-      etiquetas: etiquetas
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean),
-      estado,
-      publicado_en: estado === "programado" ? new Date(programarPara).toISOString() : null,
-      destacado,
-      meta_titulo: metaTitulo || null,
-      meta_descripcion: metaDescripcion || null,
-      palabras_clave: palabras || null,
-    };
+    guardadoComo.current = huella;
     try {
-      const guardado = await pedir<ArticuloEditor>(a ? `/panel/articulos/${a.id}` : "/panel/articulos", {
-        metodo: a ? "PUT" : "POST",
-        conSesion: true,
-        cuerpo,
-      });
-      setA(guardado);
+      const guardado = await enviar(cuerpoDe(estado));
       setSlugPropio(guardado.slug);
       setSlugEditado(true);
       const mensajes: Record<EstadoArticulo, string> = {
         borrador: "Borrador guardado.",
-        revision: "Enviado a revisión: un Editor lo publicará.",
+        revision: "Enviado a revisión: ya no se ve en el blog hasta publicarlo.",
         programado: "Programado: se publicará solo en la fecha elegida.",
         publicado: "¡Publicado! Ya se ve en el blog.",
       };
       setOk(mensajes[estado]);
-      // La dirección pasa a /admin/articulos/<id> sin volver a montar el editor (no se pierde el aviso).
-      if (!a) window.history.replaceState(null, "", `/admin/articulos/${guardado.id}`);
     } catch (err) {
+      guardadoComo.current = null;
       setError(err instanceof ErrorApi ? err.message : "No se pudo guardar.");
     } finally {
       setGuardando(false);
@@ -231,18 +257,22 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
   async function subirPortada(e: ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0];
     e.target.value = "";
-    if (!archivo || !a) return;
+    if (!archivo) return;
     const cuerpo = new FormData();
     cuerpo.append("foto", archivo);
     setError(null);
     try {
-      setA(
-        await pedir<ArticuloEditor>(`/panel/articulos/${a.id}/imagen`, {
-          metodo: "PUT",
-          conSesion: true,
-          cuerpo,
-        }),
-      );
+      // En uno nuevo, primero se guarda como borrador: la portada necesita un artículo.
+      await cola.current.catch(() => {});
+      guardadoComo.current = huella;
+      const destino = articulo.current ?? (await enviar(cuerpoBorrador));
+      const guardado = await pedir<ArticuloEditor>(`/panel/articulos/${destino.id}/imagen`, {
+        metodo: "PUT",
+        conSesion: true,
+        cuerpo,
+      });
+      articulo.current = guardado;
+      setA(guardado);
       setOk("Portada guardada.");
     } catch (err) {
       setError(err instanceof ErrorApi ? err.message : "No se pudo subir la imagen.");
@@ -342,13 +372,16 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
                   type="button"
                   title={f.titulo}
                   aria-label={f.titulo}
-                  onClick={() => formatear(f)}
+                  onMouseDown={(e) => e.preventDefault()} // el cursor no sale del texto al pulsar el botón
+                  onClick={() => aplicar((texto, i, j) => aplicarFormato(texto, i, j, f))}
                   className="min-w-8 rounded px-2 py-1 font-mono text-sm text-texto-2 hover:bg-fondo hover:text-texto"
                 >
                   {f.icono}
                 </button>
               ))}
-            {pestana === "escribir" && <InsertarImagen alInsertar={insertar} />}
+            {pestana === "escribir" && (
+              <InsertarImagen alInsertar={(md) => aplicar((texto, i, j) => insertarBloque(texto, i, j, md))} />
+            )}
           </div>
           {pestana === "escribir" ? (
             <textarea
@@ -386,6 +419,13 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
             </span>
           </div>
           <Aviso ok={ok} error={error} />
+          {autoguardado && (
+            <p className={`text-xs ${autoguardado === "error" ? "text-error" : "text-texto-2"}`} aria-live="polite">
+              {autoguardado === "guardando" && "Guardando borrador…"}
+              {autoguardado === "guardado" && "Borrador guardado automáticamente."}
+              {autoguardado === "error" && "No se pudo guardar el borrador. Revisa los campos."}
+            </p>
+          )}
           <div className="grid gap-2">
             <button
               type="button"
@@ -453,6 +493,33 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
                 Enviar a revisión
               </button>
             )}
+            {a && estadoActual !== "borrador" && (publica || tipo === "guia") && (
+              <div className="grid gap-2 border-t border-borde pt-3">
+                <p className="text-xs text-texto-2">
+                  {estadoActual === "revision"
+                    ? "En revisión: no se ve en el blog."
+                    : "Al cambiar el estado deja de verse en el blog."}
+                </p>
+                {estadoActual !== "revision" && publica && (
+                  <button
+                    type="button"
+                    disabled={guardando}
+                    onClick={() => guardar("revision")}
+                    className="rounded-lg border border-borde px-3 py-2 text-sm font-semibold hover:bg-fondo disabled:opacity-60"
+                  >
+                    Pasar a revisión
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={guardando}
+                  onClick={() => guardar("borrador")}
+                  className="rounded-lg border border-borde px-3 py-2 text-sm font-semibold hover:bg-fondo disabled:opacity-60"
+                >
+                  Volver a borrador
+                </button>
+              </div>
+            )}
             {a && (estadoActual === "publicado" || estadoActual === "programado") && (
               <Link
                 href={rutaArticulo(a)}
@@ -496,7 +563,10 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
             <select
               id="articulo-categoria"
               value={categoriaId}
-              onChange={(e) => setCategoriaId(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value === NUEVA_CATEGORIA) setCreandoCategoria(true);
+                else setCategoriaId(e.target.value);
+              }}
               className={ENTRADA}
             >
               <option value="">Sin categoría</option>
@@ -506,7 +576,18 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
                   {c.nombre}
                 </option>
               ))}
+              {puede(yo, "categorias.gestionar") && <option value={NUEVA_CATEGORIA}>+ Crear categoría nueva…</option>}
             </select>
+            {creandoCategoria && (
+              <NuevaCategoria<Categoria>
+                alCancelar={() => setCreandoCategoria(false)}
+                alCrear={(c) => {
+                  setCategorias((lista) => [...lista, c]);
+                  setCategoriaId(String(c.id));
+                  setCreandoCategoria(false);
+                }}
+              />
+            )}
           </Campo>
           <Campo etiqueta="Etiquetas (separadas por comas)">
             <input
@@ -529,14 +610,10 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
               className="aspect-[1200/630] w-full rounded-lg border border-borde object-cover"
             />
           )}
-          {a ? (
-            <label className="block cursor-pointer rounded-lg border border-dashed border-borde px-3 py-2 text-center text-sm hover:border-marca">
-              {a.imagen ? "Cambiar imagen" : "Subir imagen (se recorta a 1200 × 630)"}
-              <input id="articulo-portada" type="file" accept="image/*" className="sr-only" onChange={subirPortada} />
-            </label>
-          ) : (
-            <p className="text-sm text-texto-2">Guarda el borrador para poder subir la portada.</p>
-          )}
+          <label className="block cursor-pointer rounded-lg border border-dashed border-borde px-3 py-2 text-center text-sm hover:border-marca">
+            {a?.imagen ? "Cambiar imagen" : "Subir imagen (se recorta a 1200 × 630)"}
+            <input id="articulo-portada" type="file" accept="image/*" className="sr-only" onChange={subirPortada} />
+          </label>
         </Caja>
 
         <Caja className="space-y-3 p-4">

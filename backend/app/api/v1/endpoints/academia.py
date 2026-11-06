@@ -5,11 +5,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 
 from app.almacen import Almacen, obtener_almacen
-from app.api.deps import Db, GestionarAcademia
+from app.api.deps import Db, GestionarAcademia, Ip
 from app.core.config import settings
 from app.core.errores import ErrorNegocio
-from app.models import TipoRecurso
+from app.models import EstadoSolicitud, TipoRecurso
 from app.schemas.academia import (
+    AccesoIn,
+    AccesoOut,
     AnuncioIn,
     AnuncioOut,
     CategoriaAcademiaIn,
@@ -21,10 +23,15 @@ from app.schemas.academia import (
     EtiquetaAcademiaOut,
     Lateral,
     PaginaCursos,
+    PanelSolicitudes,
     PromocionIn,
     PromocionOut,
+    RevisionIn,
+    SolicitudCreada,
+    SolicitudIn,
+    SolicitudPanel,
 )
-from app.services import academia
+from app.services import academia, solicitudes
 
 router = APIRouter(prefix="/academia", tags=["Academia"])
 panel = APIRouter(prefix="/panel/academia", tags=["Panel · Academia"])
@@ -63,6 +70,26 @@ def lateral(db: Db, almacen: AlmacenDep) -> Lateral:
 @router.get("/cursos/{slug}", response_model=CursoPublico)
 def curso(slug: str, db: Db, almacen: AlmacenDep) -> CursoPublico:
     return academia.ver_publico(db, almacen, slug)
+
+
+@router.post("/cursos/{slug}/solicitudes", response_model=SolicitudCreada, status_code=status.HTTP_201_CREATED)
+def solicitar(slug: str, datos: SolicitudIn, db: Db, ip: Ip) -> SolicitudCreada:
+    return solicitudes.crear(db, slug, datos, ip)
+
+
+@router.post("/acceso", response_model=AccesoOut)
+def acceder(datos: AccesoIn, db: Db, ip: Ip) -> AccesoOut:
+    return solicitudes.acceder(db, datos.codigo, ip)
+
+
+@panel.get("/solicitudes", response_model=PanelSolicitudes)
+def listar_solicitudes(_quien: GestionarAcademia, db: Db, estado: EstadoSolicitud | None = None) -> PanelSolicitudes:
+    return solicitudes.listar(db, estado)
+
+
+@panel.put("/solicitudes/{solicitud_id}", response_model=SolicitudPanel)
+def revisar_solicitud(solicitud_id: int, datos: RevisionIn, _quien: GestionarAcademia, db: Db) -> SolicitudPanel:
+    return solicitudes.revisar(db, solicitud_id, datos.estado)
 
 
 @panel.post("/categorias", response_model=CategoriaAcademiaOut, status_code=status.HTTP_201_CREATED)

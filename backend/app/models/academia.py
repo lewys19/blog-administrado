@@ -90,6 +90,34 @@ class Curso(Base):
     categoria: Mapped[CategoriaAcademia] = relationship()
 
 
+class EstadoSolicitud(StrEnum):
+    PENDIENTE = "pendiente"
+    APROBADA = "aprobada"
+    RECHAZADA = "rechazada"
+
+
+class SolicitudCurso(Base):
+    """Compra de un curso de pago: el código abre el material cuando el administrador lo aprueba."""
+
+    __tablename__ = "academia_solicitudes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    curso_id: Mapped[int | None] = mapped_column(ForeignKey("cursos.id", ondelete="SET NULL"))
+    curso_titulo: Mapped[str] = mapped_column(String(120))  # el registro de ventas sobrevive si se borra el curso
+    codigo: Mapped[str] = mapped_column(String(20), unique=True)
+    nombre: Mapped[str] = mapped_column(String(80))
+    whatsapp: Mapped[str] = mapped_column(String(20))
+    estado: Mapped[EstadoSolicitud] = mapped_column(
+        Enum(EstadoSolicitud, name="estado_solicitud", values_callable=lambda e: [x.value for x in e]),
+        default=EstadoSolicitud.PENDIENTE,
+        server_default="pendiente",
+        index=True,
+    )
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revisado_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    entregado_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class EtiquetaAcademia(Base):
     """Atajo de la columna derecha: al hacer clic busca su nombre en los cursos."""
 

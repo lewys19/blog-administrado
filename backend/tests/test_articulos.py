@@ -131,6 +131,23 @@ def test_imagen_en_el_texto_exige_sesion_y_foto_real(
     assert client.post(f"{PANEL}/imagenes", files=archivo, headers=h).status_code == 415
 
 
+def test_cambiar_de_publicado_a_revision_saca_del_blog(
+    client: TestClient, registrar: Callable[..., dict], db: Session
+) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    a = client.post(f"{PANEL}/articulos", json=articulo(estado="publicado"), headers=h).json()
+    assert client.get(f"{BLOG}/articulos/{a['slug']}").status_code == 200
+    r = client.put(f"{PANEL}/articulos/{a['id']}", json=articulo(estado="revision"), headers=h)
+    assert r.status_code == 200 and r.json()["estado"] == "revision"
+    assert client.get(f"{BLOG}/articulos/{a['slug']}").status_code == 404
+
+
+def test_markdown_conserva_h1(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    r = client.post(f"{PANEL}/articulos/vista-previa", json={"contenido": "# Grande"}, headers=h)
+    assert "<h1" in r.json()["html"]
+
+
 def test_invitado_y_lector(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
     lector = registrar("lector@example.com", "Lector")
     assert client.post(f"{PANEL}/articulos", json=articulo(), headers={"Authorization": f"Bearer {lector['token_acceso']}"}).status_code == 403
@@ -147,7 +164,7 @@ def test_invitado_y_lector(client: TestClient, registrar: Callable[..., dict], d
 def test_vista_previa(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
     h = dar_rol(db, registrar(), REDACTOR)
     r = client.post(f"{PANEL}/articulos/vista-previa", json={"contenido": "# Hola\n\n" + "palabra " * 600}, headers=h).json()
-    assert r["html"].startswith('<h2 id="hola">') and r["minutos_lectura"] == 3
+    assert r["html"].startswith('<h1 id="hola">') and r["minutos_lectura"] == 3
 
 
 def test_guias_separadas_de_noticias(client: TestClient, db: Session, registrar) -> None:  # noqa: ANN001

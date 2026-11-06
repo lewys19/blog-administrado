@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 
+import { NuevaCategoria } from "@/components/panel/NuevaCategoria";
 import { Migas } from "@/components/panel/Panel";
 import { Aviso, BotonAccion, Caja, GrupoAcciones, TD, TH } from "@/components/panel/Tabla";
 import { type Nivel, NIVELES, precioTexto, SECCIONES_ACADEMIA, seccionAcademia } from "@/lib/academia";
@@ -12,6 +13,9 @@ import type { CategoriaAcademia, CursoPanel } from "@/lib/tipos";
 import { Anuncios } from "./Anuncios";
 import { Etiquetas } from "./Etiquetas";
 import { Promociones } from "./Promociones";
+import { Solicitudes } from "./Solicitudes";
+
+const NUEVA_CATEGORIA = "nueva";
 
 const ENTRADA = "w-full rounded-md border border-borde bg-superficie px-3 py-2 text-sm outline-none focus:border-marca";
 const BOTON = "rounded-lg bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo";
@@ -22,6 +26,7 @@ const OTRAS = {
   etiquetas: "Etiquetas",
   publicidad: "Publicidad",
   promociones: "Promociones",
+  solicitudes: "Solicitudes",
 } as const;
 
 interface BorradorCurso {
@@ -88,6 +93,7 @@ function Seccion({ pestana }: { pestana: string }) {
   const titulo = textos?.titulo ?? OTRAS[pestana as keyof typeof OTRAS] ?? "Academia";
   const [cursos, setCursos] = useState<CursoPanel[] | null>(null);
   const [categorias, setCategorias] = useState<CategoriaAcademia[]>([]);
+  const [creandoCategoria, setCreandoCategoria] = useState(false);
   const [curso, setCurso] = useState<BorradorCurso | null>(null);
   const [portada, setPortada] = useState<File | null>(null);
   const [categoria, setCategoria] = useState<BorradorCategoria | null>(null);
@@ -300,14 +306,29 @@ function Seccion({ pestana }: { pestana: string }) {
                 className={ENTRADA}
                 required
                 value={curso.categoria_id}
-                onChange={(e) => setCurso({ ...curso, categoria_id: e.target.value })}
+                onChange={(e) => {
+                  if (e.target.value === NUEVA_CATEGORIA) setCreandoCategoria(true);
+                  else setCurso({ ...curso, categoria_id: e.target.value });
+                }}
               >
                 {categorias.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nombre}
                   </option>
                 ))}
+                <option value={NUEVA_CATEGORIA}>+ Crear categoría nueva…</option>
               </select>
+              {creandoCategoria && (
+                <NuevaCategoria<CategoriaAcademia>
+                  ruta="/panel/academia/categorias"
+                  alCancelar={() => setCreandoCategoria(false)}
+                  alCrear={(c) => {
+                    setCategorias((lista) => [...lista, c]);
+                    setCurso({ ...curso, categoria_id: String(c.id) });
+                    setCreandoCategoria(false);
+                  }}
+                />
+              )}
             </label>
             {!esSistema && (
               <label className="block text-sm">
@@ -529,6 +550,7 @@ function Seccion({ pestana }: { pestana: string }) {
       {pestana === "etiquetas" && <Etiquetas />}
       {pestana === "publicidad" && <Anuncios />}
       {pestana === "promociones" && <Promociones />}
+      {pestana === "solicitudes" && <Solicitudes />}
 
       {textos && (
         <Caja className="overflow-x-auto">

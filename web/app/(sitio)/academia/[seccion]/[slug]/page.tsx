@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { BotonCurso, Portada, Precio } from "@/components/academia/Cursos";
+import { Portada, Precio } from "@/components/academia/Cursos";
+import { ObtenerCurso } from "@/components/academia/ObtenerCurso";
 import { ICONOS, Icono } from "@/components/blog/Iconos";
 import { Migas } from "@/components/blog/Lateral";
 import { NIVELES, rutaCurso, SECCIONES_ACADEMIA, seccionAcademia } from "@/lib/academia";
 import { obtener } from "@/lib/servidor";
+import { WHATSAPP_ACADEMIA } from "@/lib/sitio";
 import type { CursoPublico } from "@/lib/tipos";
 
 type Props = PageProps<"/academia/[seccion]/[slug]">;
@@ -86,7 +88,7 @@ export default async function Curso({ params }: Props) {
           <Portada curso={c} />
           <div className="space-y-4 p-5">
             <Precio curso={c} grande />
-            <BotonCurso curso={c} />
+            <ObtenerCurso curso={c} whatsapp={WHATSAPP_ACADEMIA} />
             <ul className="space-y-2 text-sm text-texto-2">
               {c.tipo !== "sistema" && (
                 <li className="flex items-center gap-2">

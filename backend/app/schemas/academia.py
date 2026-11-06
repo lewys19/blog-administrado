@@ -1,10 +1,11 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
-from app.models.academia import GrupoEtiqueta, NivelCurso, TipoRecurso
+from app.models.academia import EstadoSolicitud, GrupoEtiqueta, NivelCurso, TipoRecurso
 
 Texto = Annotated[str, StringConstraints(strip_whitespace=True)]
 Precio = Annotated[Decimal, Field(ge=0, max_digits=8, decimal_places=2)]
@@ -96,6 +97,48 @@ class PaginaCursos(BaseModel):
     pagina: int
     por_pagina: int
     cursos: list[CursoTarjeta]
+
+
+class SolicitudIn(BaseModel):
+    nombre: Annotated[Texto, Field(min_length=2, max_length=80)]
+    whatsapp: Annotated[Texto, Field(min_length=7, max_length=20, pattern=r"^\+?[0-9 ()-]+$")]
+
+
+class SolicitudCreada(BaseModel):
+    codigo: str
+
+
+class AccesoIn(BaseModel):
+    codigo: Annotated[Texto, Field(min_length=4, max_length=20)]
+
+
+class AccesoOut(BaseModel):
+    estado: EstadoSolicitud
+    enlace: str | None
+
+
+class RevisionIn(BaseModel):
+    estado: EstadoSolicitud
+
+
+class SolicitudPanel(BaseModel):
+    id: int
+    curso_titulo: str
+    codigo: str
+    nombre: str
+    whatsapp: str
+    estado: EstadoSolicitud
+    creado_en: datetime
+    revisado_en: datetime | None
+    entregado_en: datetime | None
+
+
+class PanelSolicitudes(BaseModel):
+    solicitudes: list[SolicitudPanel]
+    pendientes: int
+    aprobadas: int
+    rechazadas: int
+    entregadas: int
 
 
 class EtiquetaAcademiaIn(BaseModel):

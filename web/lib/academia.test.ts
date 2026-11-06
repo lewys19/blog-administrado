@@ -12,9 +12,13 @@ describe("precioTexto", () => {
 
 describe("enlaceWhatsapp", () => {
   it("limpia el número y escribe el mensaje con el curso y su precio", () => {
-    const url = new URL(enlaceWhatsapp("+51 999-888-777", { tipo: "curso", titulo: "Python desde Cero", precio: 9 }));
+    const url = new URL(
+      enlaceWhatsapp("+51 999-888-777", { tipo: "curso", titulo: "Python desde Cero", precio: 9 }, "ZC-AB"),
+    );
     expect(url.origin + url.pathname).toBe("https://wa.me/51999888777");
-    expect(url.searchParams.get("text")).toBe("Hola, quiero comprar el curso «Python desde Cero» ($9).");
+    expect(url.searchParams.get("text")).toBe(
+      "Hola, quiero comprar el curso «Python desde Cero» ($9). Mi código es ZC-AB.",
+    );
   });
 });
 
@@ -23,8 +27,8 @@ describe("secciones", () => {
     expect(rutaCurso({ tipo: "sistema", slug: "pos" })).toBe("/academia/sistemas/pos");
     expect(seccionAcademia("manuales")).toBe("manuales");
     expect(seccionAcademia("constructor")).toBeNull();
-    const url = new URL(enlaceWhatsapp("51999", { tipo: "separata", titulo: "SQL", precio: 2 }));
-    expect(url.searchParams.get("text")).toBe("Hola, quiero comprar la separata «SQL» ($2).");
+    const url = new URL(enlaceWhatsapp("51999", { tipo: "separata", titulo: "SQL", precio: 2 }, "ZC-AB"));
+    expect(url.searchParams.get("text")).toBe("Hola, quiero comprar la separata «SQL» ($2). Mi código es ZC-AB.");
   });
 });
 

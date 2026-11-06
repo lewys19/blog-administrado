@@ -82,7 +82,7 @@ export function Articulos() {
         <h1 className="flex-1 text-2xl font-bold tracking-tight">{soloGuias ? "Mis guías" : "Artículos"}</h1>
         <Link
           href="/admin/articulos/nuevo"
-          className="rounded-lg bg-lateral px-4 py-2 text-sm font-semibold text-white hover:bg-lateral-activo"
+          className="rounded-lg bg-marca px-5 py-2.5 font-bold text-sobre-marca shadow-md transition-colors hover:bg-marca-fuerte"
         >
           {soloGuias ? "+ Nueva guía" : "+ Nuevo artículo"}
         </Link>

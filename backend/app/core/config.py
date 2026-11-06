@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     BASE_PAISES: str = "./geo/pais.mmdb"
     MAX_VISITAS_POR_MINUTO: int = 60  # por IP; más que eso es un robot
     MAX_COMENTARIOS_POR_HORA: int = 5  # por IP
+    MAX_SOLICITUDES_POR_HORA: int = 5  # por IP (códigos de compra de la Academia)
+    MAX_CODIGOS_POR_HORA: int = 20  # por IP (intentos de usar un código)
     MAX_SUSCRIPCIONES_POR_HORA: int = 5  # por IP (formulario del boletín)
 
     # Dirección pública del blog: va en los enlaces de los correos (confirmar, leer, darse de baja).

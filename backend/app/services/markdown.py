@@ -21,7 +21,7 @@ _CONFIG = {
 }
 
 _ETIQUETAS = {
-    "a", "abbr", "b", "blockquote", "br", "code", "del", "div", "em", "figcaption", "figure", "h2", "h3", "h4",
+    "a", "abbr", "b", "blockquote", "br", "code", "del", "div", "em", "figcaption", "figure", "h1", "h2", "h3", "h4",
     "h5", "h6", "hr", "i", "img", "kbd", "li", "mark", "ol", "p", "pre", "s", "span", "strong", "sub", "sup",
     "table", "tbody", "td", "th", "thead", "tr", "ul",
 }  # fmt: skip
@@ -35,9 +35,7 @@ _ATRIBUTOS = {
 
 
 def a_html(texto: str) -> str:
-    # Un «# Título» dentro del artículo pasa a h2: el h1 de la página es el título del artículo.
     html = markdown.markdown(texto, extensions=_EXTENSIONES, extension_configs=_CONFIG, output_format="html")
-    html = re.sub(r"<(/?)h1(\b[^>]*)>", r"<\1h2\2>", html)
     html = re.sub(r"<img\b", '<img loading="lazy"', html)
     return nh3.clean(
         html,
