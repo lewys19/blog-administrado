@@ -47,7 +47,7 @@ async function salir() {
 }
 
 function FormIngreso() {
-  // Con ?crear=1 (botón «Escribe una guía» del blog) se abre directo en «Crear cuenta».
+  // Con ?crear=1 se abre directo en «Crear cuenta».
   const [creando, setCreando] = useState(
     () => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("crear"),
   );

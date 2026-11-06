@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { cifra, duracion, etiquetaFecha, hace, pais, variacion } from "./formato";
+import { cifra, duracion, esUrlImagen, etiquetaFecha, hace, imagenMarkdown, pais, variacion } from "./formato";
 
 describe("formato", () => {
   it("separa miles", () => expect(cifra(4382)).toBe("4,382"));
+  it("arma la imagen en Markdown", () => {
+    expect(imagenMarkdown("Mi foto", "/media/contenido/a.webp")).toBe("![Mi foto](/media/contenido/a.webp)");
+    expect(imagenMarkdown("a [b]", " https://x.com/mi foto(1).png ")).toBe(
+      "![a  b](https://x.com/mi%20foto%281%29.png)",
+    );
+  });
+  it("solo acepta imágenes por https", () => {
+    expect(esUrlImagen("https://x.com/a.png")).toBe(true);
+    expect(esUrlImagen("http://x.com/a.png")).toBe(false);
+    expect(esUrlImagen("javascript:alert(1)")).toBe(false);
+    expect(esUrlImagen("no es url")).toBe(false);
+  });
   it("dice hace cuánto", () => {
     const ahora = new Date("2026-10-29T12:00:00Z");
     expect(hace("2026-10-29T11:55:00Z", ahora)).toBe("hace 5 min");

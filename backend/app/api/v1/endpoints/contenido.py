@@ -16,6 +16,7 @@ from app.schemas.contenido import (
     CategoriaOut,
     EtiquetaIn,
     EtiquetaOut,
+    ImagenContenidoOut,
     PaginaArticulosPanel,
     VistaPreviaIn,
     VistaPreviaOut,
@@ -81,6 +82,18 @@ async def subir_imagen(
 @router.delete("/articulos/{articulo_id}/imagen", response_model=ArticuloEditor)
 def quitar_imagen(articulo_id: int, quien: EscribirArticulos, db: Db, almacen: AlmacenDep) -> ArticuloEditor:
     return articulos.cambiar_imagen(db, almacen, quien, articulo_id, None)
+
+
+@router.post("/imagenes", response_model=ImagenContenidoOut, status_code=status.HTTP_201_CREATED)
+async def subir_imagen_contenido(
+    _quien: EscribirArticulos, almacen: AlmacenDep, foto: Annotated[UploadFile, File()]
+) -> ImagenContenidoOut:
+    """Imagen para el texto de un artículo: devuelve la dirección que se pone en el Markdown."""
+    limite = settings.MAX_MB_FOTO * 1024 * 1024
+    datos = await foto.read(limite + 1)
+    if len(datos) > limite:
+        raise ErrorNegocio(status.HTTP_413_CONTENT_TOO_LARGE, f"La imagen pesa más de {settings.MAX_MB_FOTO} MB.")
+    return ImagenContenidoOut(url=articulos.guardar_imagen_contenido(almacen, datos))
 
 
 # ---------- Categorías ----------

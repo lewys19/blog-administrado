@@ -109,6 +109,28 @@ def test_portada_se_recorta_para_redes(client: TestClient, registrar: Callable[.
     assert r.status_code == 200 and r.json()["imagen"].startswith("/media/articulos/")
 
 
+def test_imagen_en_el_texto(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
+    h = dar_rol(db, registrar(), EDITOR)
+    imagen = io.BytesIO()
+    Image.new("RGB", (2000, 1000), "teal").save(imagen, "PNG")
+    r = client.post(f"{PANEL}/imagenes", files={"foto": ("p.png", imagen.getvalue(), "image/png")}, headers=h)
+    assert r.status_code == 201 and r.json()["url"].startswith("/media/contenido/")
+    # La dirección relativa sobrevive a la limpieza del HTML al mostrarse en el artículo.
+    vista = client.post(f"{PANEL}/articulos/vista-previa", json={"contenido": f"![Foto]({r.json()['url']})"}, headers=h)
+    assert f'src="{r.json()["url"]}"' in vista.json()["html"]
+
+
+def test_imagen_en_el_texto_exige_sesion_y_foto_real(
+    client: TestClient, registrar: Callable[..., dict], db: Session
+) -> None:
+    archivo = {"foto": ("p.png", b"esto no es una imagen", "image/png")}
+    assert client.post(f"{PANEL}/imagenes", files=archivo).status_code == 401
+    sin_rol = dar_rol(db, registrar("lector@example.com", "Lector"), None)
+    assert client.post(f"{PANEL}/imagenes", files=archivo, headers=sin_rol).status_code == 403
+    h = dar_rol(db, registrar("ed@example.com", "Ed"), EDITOR)
+    assert client.post(f"{PANEL}/imagenes", files=archivo, headers=h).status_code == 415
+
+
 def test_invitado_y_lector(client: TestClient, registrar: Callable[..., dict], db: Session) -> None:
     lector = registrar("lector@example.com", "Lector")
     assert client.post(f"{PANEL}/articulos", json=articulo(), headers={"Authorization": f"Bearer {lector['token_acceso']}"}).status_code == 403

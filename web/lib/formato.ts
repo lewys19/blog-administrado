@@ -1,3 +1,18 @@
+/** Imagen en Markdown. Quita lo que rompería la sintaxis: corchetes en la descripción y espacios en la dirección. */
+export function imagenMarkdown(descripcion: string, url: string): string {
+  const texto = descripcion.replace(/[[\]\n]/g, " ").trim();
+  return `![${texto}](${url.trim().replace(/\s/g, "%20").replace(/\(/g, "%28").replace(/\)/g, "%29")})`;
+}
+
+/** Solo direcciones https: el blog siempre carga por https y otra cosa saldría bloqueada. */
+export function esUrlImagen(url: string): boolean {
+  try {
+    return new URL(url.trim()).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /** Número con separador de miles: 4382 → "4,382". */
 export function cifra(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);

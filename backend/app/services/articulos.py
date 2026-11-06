@@ -307,6 +307,14 @@ def cambiar_imagen(
     return _editor(_cargar(db, articulo_id), almacen)
 
 
+def guardar_imagen_contenido(almacen: Almacen, datos: bytes) -> str:
+    """Imagen dentro del texto: se reduce y limpia igual que las portadas, sin recortarla."""
+    webp, _, _ = imagenes.procesar(datos)
+    clave = f"contenido/{uuid.uuid4().hex}.webp"
+    almacen.guardar(clave, webp, "image/webp")
+    return almacen.url(clave)
+
+
 def contar_publicados(db: Session) -> int:
     return db.scalar(select(func.count()).select_from(Articulo).where(visible())) or 0
 

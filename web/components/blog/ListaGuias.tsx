@@ -39,12 +39,6 @@ export async function ListaGuias({ tema, pagina }: { tema?: string; pagina: numb
         <p className="max-w-2xl text-lg text-texto-2">
           Tutoriales paso a paso escritos por la comunidad: cómo instalar, configurar y levantar proyectos reales.
         </p>
-        <Link
-          href="/admin/articulos/nuevo?crear=1"
-          className="rounded-lg bg-marca px-4 py-2.5 font-semibold text-white hover:bg-marca-fuerte"
-        >
-          ✍️ Escribe una guía
-        </Link>
       </div>
 
       <nav aria-label="Temas" className="mt-6 flex gap-2 overflow-x-auto pb-1">

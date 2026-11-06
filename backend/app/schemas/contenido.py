@@ -123,6 +123,10 @@ class VistaPreviaOut(BaseModel):
     minutos_lectura: int
 
 
+class ImagenContenidoOut(BaseModel):
+    url: str
+
+
 # ---------- Blog público ----------
 
 

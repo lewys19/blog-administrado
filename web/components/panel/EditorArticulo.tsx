@@ -7,6 +7,7 @@ import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useRef, us
 
 import { puede, usePanel } from "@/components/panel/Panel";
 import { Aviso, Caja } from "@/components/panel/Tabla";
+import { InsertarImagen } from "@/components/panel/InsertarImagen";
 import { ErrorApi, pedir } from "@/lib/api";
 import { GenerarConIA } from "@/components/panel/GenerarConIA";
 import type { ArticuloEditor, Categoria, EstadoArticulo, TipoArticulo } from "@/lib/tipos";
@@ -160,6 +161,19 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
       t.focus();
       const cursor = f.linea ? j + f.antes.length : i + f.antes.length + elegido.length;
       t.setSelectionRange(cursor, cursor);
+    });
+  }
+
+  /** Pone el texto donde está el cursor, en una línea propia. */
+  function insertar(texto: string) {
+    const t = area.current;
+    const i = t?.selectionStart ?? contenido.length;
+    const j = t?.selectionEnd ?? contenido.length;
+    const bloque = `\n\n${texto}\n\n`;
+    setContenido(contenido.slice(0, i) + bloque + contenido.slice(j));
+    requestAnimationFrame(() => {
+      t?.focus();
+      t?.setSelectionRange(i + bloque.length, i + bloque.length);
     });
   }
 
@@ -334,6 +348,7 @@ export function EditorArticulo({ inicial }: { inicial: ArticuloEditor | null }) 
                   {f.icono}
                 </button>
               ))}
+            {pestana === "escribir" && <InsertarImagen alInsertar={insertar} />}
           </div>
           {pestana === "escribir" ? (
             <textarea
